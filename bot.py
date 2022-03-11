@@ -138,6 +138,7 @@ def start_bot():
 
     if os.getenv('USE_WEBHOOK', '') == 'true':
         port = int(os.environ.get('PORT', 5000))
+        logger.log(logging.INFO, "Starting webhook at port %s", port)
         updater.start_webhook(listen='0.0.0.0',
                               port=int(port),
                               url_path=api_key)
