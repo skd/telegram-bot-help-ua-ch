@@ -116,8 +116,9 @@ def choice(update: Update, context: CallbackContext) -> int:
 
 def start_bot():
 
+    api_key = os.getenv('TELEGRAM_BOT_API_KEY')
     updater = Updater(
-        token=os.getenv('TELEGRAM_BOT_API_KEY'), use_context=True)
+        token=api_key, use_context=True)
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
@@ -135,11 +136,20 @@ def start_bot():
 
     dispatcher.add_handler(conv_handler)
 
-    updater.start_polling()
+    if os.getenv('USE_WEBHOOK', '') == 'true':
+        port = int(os.environ.get('PORT', 5000))
+        updater.start_webhook(listen='0.0.0.0',
+                              port=int(port),
+                              url_path=api_key)
+        updater.bot.setWebhook(
+            'https://telegram-bot-help-ua-ch.herokuapp.com/' + api_key)
+    else:
+        updater.start_polling()
+
     updater.idle()
 
 
-def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set=set()):
+def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set = set()):
     visited.add(node.name)
     consumer(node)
     if len(node.link) > 0:
@@ -178,7 +188,7 @@ def create_keyboards(node_by_name):
 
 def create_back_nav_visitor(prev: conversation_proto.ConversationNode,
                             node: conversation_proto.ConversationNode, consumer,
-                            visited: Set=set()):
+                            visited: Set = set()):
     visited.add(node.name)
     consumer(prev, node)
     if len(node.link) > 0:
