@@ -1,0 +1,72 @@
+# proto-file: conversation.proto
+# proto-message: Conversation
+node {
+    name: "/start"
+    answer { text: "Hi, how can I help you?" }
+    link: { name: "Where are you?" }
+    link: { name: "Who are you?" }
+}
+node {
+    name: "Where are you?"
+    answer { text: "I am located in the cloud" }
+    answer { links {
+        text: "Here are some links on the cloud"
+        url {
+            label: "Cloud on Google Search"
+            url: "http://goo.gl/search?cloud"
+        }
+        url {
+            label: "Delfi"
+            url: "http://www.delfi.lt/"
+        }
+    } }
+    answer { photo: "clouds.jpg" }
+    answer { text: "What about you?" }
+    link { name: "On Mars" }
+    link { name: "On Earth" }
+    link { name: "/start" }
+}
+node {
+    name: "On Mars"
+    answer { text: "Ooh, that's cold." }
+}
+node {
+    name: "On Earth"
+    answer { text: "Sweet! I am there too... I hope." }
+}
+node {
+    name: "Who are you?"
+    answer { text: "I don't know. Do you have an idea?" }
+    link { branch { 
+        name: "No"
+        answer { text: "That's too bad!"} 
+        link { branch {
+            name: "I said, no!"
+            answer { text: "Ok, ok..." }
+        } }
+    } }
+    link { branch { 
+        name: "Yes"
+        answer { text: "Yes? Tell me!"} 
+    } }
+    link { branch { 
+        name: "You are a bot."
+        answer { text: "Oh, really? I didn't know."} 
+    } }
+    link { branch { 
+        name: "You are the beginning of skynet."
+        answer { text: "I'll be back..."} 
+    } }
+    link { branch { 
+        name: "You have no purpose."
+        answer { text: "Oh, no..."} 
+    } }
+    link { branch { 
+        name: "This is just another button."
+        answer { text: "It tickles! :)"} 
+    } }
+    link { branch { 
+        name: "This is yet another button."
+        answer { text: "It does indeed tickle! :)"} 
+    } }
+}
