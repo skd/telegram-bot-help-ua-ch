@@ -141,9 +141,8 @@ def start_bot():
         logger.log(logging.INFO, "Starting webhook at port %s", port)
         updater.start_webhook(listen='0.0.0.0',
                               port=int(port),
-                              url_path=api_key)
-        updater.bot.setWebhook(
-            'https://telegram-bot-help-ua-ch.herokuapp.com/' + api_key)
+                              url_path=api_key,
+                              webhook_url="https://telegram-bot-help-ua-ch.herokuapp.com/" + api_key)
     else:
         updater.start_polling()
 
