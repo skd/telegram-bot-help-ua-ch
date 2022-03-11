@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from asyncio import run_coroutine_threadsafe
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
