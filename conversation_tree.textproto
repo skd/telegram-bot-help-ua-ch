@@ -3,6 +3,12 @@
 node {
     name: "/start"
     answer { text: "Добро пожаловать в бот для поддержки беженцев из Украины в Швейцарии. Здесь мы собрали для вас ответы на самые часто задаваемые вопросы." }
+    answer { links {
+        text: "Создатели бота:"
+        url: {
+            label: "@UASchweiz"
+            url: "https://t.me/UASchweiz"
+    } }
     link: { name: "Where are you?" }
     link: { name: "Who are you?" }
 }
