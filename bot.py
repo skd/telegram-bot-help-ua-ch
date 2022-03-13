@@ -28,9 +28,11 @@ logger = logging.getLogger(__name__)
 CHOOSING = range(1)
 
 BACK = "Назад"
+START_OVER = "Вернуться в начало"
 DONE = "Завершить"
 PROMPT_REPLY = "Выберите пункт"
-UNSTARTED = ""
+
+START_NODE = "/start"
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
@@ -47,17 +49,20 @@ def done(update: Update, context: CallbackContext) -> int:
     user_data.clear()
     return ConversationHandler.END
 
+def start_over(update: Update, context: CallbackContext) -> int:
+    context.user_data["current_node"] = START_NODE
+    return choice(update, context)
 
 def back_choice(update: Update, context: CallbackContext) -> int:
     current_node = context.user_data["current_node"]
     new_node = CONVERSATION_DATA["back_nav"][current_node] \
-        if current_node in CONVERSATION_DATA["back_nav"] else "/start"
+        if current_node in CONVERSATION_DATA["back_nav"] else START_NODE
     context.user_data["current_node"] = new_node
     return choice(update, context)
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    context.user_data["current_node"] = "/start"
+    context.user_data["current_node"] = START_NODE
     return choice(update, context)
 
 
@@ -129,10 +134,13 @@ def start_bot():
                 MessageHandler(
                     Filters.regex('^(' + BACK + ')$'), back_choice),
                 MessageHandler(
-                    Filters.text & ~Filters.regex('^%s$' % (DONE)), choice),
+                    Filters.text & ~Filters.regex('^%s|%s$' % (DONE, START_OVER)), choice),
             ],
         },
-        fallbacks=[MessageHandler(Filters.regex('%s$' % (DONE)), done)],
+        fallbacks=[
+            MessageHandler(Filters.regex('%s$' % (START_OVER)), start_over),
+            MessageHandler(Filters.regex('%s$' % (DONE)), done),
+        ],
     )
     dispatcher.add_handler(conv_handler)
 
@@ -180,7 +188,9 @@ def create_keyboards(node_by_name):
                     options.append([link.branch.name])
             if name in CONVERSATION_DATA["back_nav"]:
                 options.append([BACK])
-            options.append([DONE])
+            if name != START_NODE:
+                options.append([START_OVER])
+            # options.append([DONE])
             keyboard_by_name[name] = ReplyKeyboardMarkup(
                 options, one_time_keyboard=True)
     return keyboard_by_name
@@ -217,7 +227,7 @@ if __name__ == "__main__":
             f_buffer, conversation_proto.Conversation())
     CONVERSATION_DATA["node_by_name"] = create_node_by_name(conversation)
     CONVERSATION_DATA["back_nav"] = create_back_nav(
-        CONVERSATION_DATA["node_by_name"]["/start"])
+        CONVERSATION_DATA["node_by_name"][START_NODE])
     CONVERSATION_DATA["keyboard_by_name"] = create_keyboards(
         CONVERSATION_DATA["node_by_name"])
     start_bot()
