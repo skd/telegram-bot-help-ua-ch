@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 CHOOSING = range(1)
 
-BACK = "Back"
-DONE = "Done"
-PROMPT_REPLY = "What will you say?"
+BACK = "Назад"
+DONE = "Завершить"
+PROMPT_REPLY = "Выберите пункт"
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
@@ -39,7 +39,7 @@ def done(update: Update, context: CallbackContext) -> int:
     user_data = context.user_data
 
     update.message.reply_text(
-        "Until next time! Type /start to start over.",
+        "Спасибо! Напишите /start чтобы начать снова.",
         reply_markup=ReplyKeyboardRemove(),
     )
 
