@@ -8,6 +8,7 @@ node {
         url {
             label: "@UASchweiz"
             url: "https://t.me/UASchweiz"
+        }
     } }
     link: { name: "Where are you?" }
     link: { name: "Who are you?" }
