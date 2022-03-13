@@ -30,6 +30,7 @@ CHOOSING = range(1)
 BACK = "Назад"
 DONE = "Завершить"
 PROMPT_REPLY = "Выберите пункт"
+UNSTARTED = ""
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
@@ -122,7 +123,7 @@ def start_bot():
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
+        entry_points=[MessageHandler(Filters.all, start)],
         states={
             CHOOSING: [
                 MessageHandler(
@@ -133,7 +134,6 @@ def start_bot():
         },
         fallbacks=[MessageHandler(Filters.regex('%s$' % (DONE)), done)],
     )
-
     dispatcher.add_handler(conv_handler)
 
     if os.getenv('USE_WEBHOOK', '') == 'true':
