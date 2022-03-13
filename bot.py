@@ -9,7 +9,6 @@ from telegram import (
 )
 from telegram.ext import (
     CallbackContext,
-    CommandHandler,
     ConversationHandler,
     Filters,
     MessageHandler,
@@ -49,9 +48,11 @@ def done(update: Update, context: CallbackContext) -> int:
     user_data.clear()
     return ConversationHandler.END
 
+
 def start_over(update: Update, context: CallbackContext) -> int:
     context.user_data["current_node"] = START_NODE
     return choice(update, context)
+
 
 def back_choice(update: Update, context: CallbackContext) -> int:
     current_node = context.user_data["current_node"]
@@ -139,7 +140,7 @@ def start_bot():
         },
         fallbacks=[
             MessageHandler(Filters.regex('%s$' % (START_OVER)), start_over),
-            MessageHandler(Filters.regex('%s$' % (DONE)), done),
+            # MessageHandler(Filters.regex('%s$' % (DONE)), done),
         ],
     )
     dispatcher.add_handler(conv_handler)
