@@ -32,12 +32,16 @@ def validate_conversation_links(conversation):
 
 def validate_answers(conversation):
     def do_answer_validation(node):
+        print("E: node must have a name set.") if len(node.name) == 0 else None
+        print("E: node['%s'] must have at least one answer." %
+              node.name) if len(node.answer) == 0 else None
         for answer in node.answer:
             if answer.WhichOneof("answer") == "links":
                 print("E: node['%s'].answer.links must have text set." % (node.name)) \
                     if len(answer.links.text) == 0 else None
                 for url in answer.links.url:
-                    print("E: node['%s'].answer.links['%s'].url must have both label and url set." % (node.name, answer.links.text)) \
+                    print("E: node['%s'].answer.links['%s'].url must have both label and url set."
+                          % (node.name, answer.links.text)) \
                         if len(url.label) == 0 or len(url.url) == 0 else None
             elif answer.WhichOneof("answer") == "photo":
                 print("E: node['%s'].answer.photo['%s'] photo does not exist." % (node.name, answer.photo)) \
