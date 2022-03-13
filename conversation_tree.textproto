@@ -2,7 +2,7 @@
 # proto-message: Conversation
 node {
     name: "/start"
-    answer { text: "Hi, how can I help you?" }
+    answer { text: "Добро пожаловать в бот для поддержки беженцев из Украины в Швейцарии. Здесь мы собрали для вас ответы на самые часто задаваемые вопросы." }
     link: { name: "Where are you?" }
     link: { name: "Who are you?" }
 }
