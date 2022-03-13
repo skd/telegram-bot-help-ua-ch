@@ -10,11 +10,15 @@ node {
             url: "https://t.me/UASchweiz"
         }
     } }
-    link: { name: "Where are you?" }
-    link: { name: "Who are you?" }
+    link: { name: "Я беженец" }
+    link: { name: "Хочу помочь" }
 }
 node {
-    name: "Where are you?"
+    name: "Хочу помочь"
+    answer { text: "Пожалуйста, напишите в группу https://t.me/UASchweiz" }
+}
+node {
+    name: "Я беженец"
     answer { text: "I am located in the cloud" }
     answer { links {
         text: "Here are some links on the cloud"
