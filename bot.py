@@ -3,6 +3,7 @@
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    ParseMode,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     Update,
@@ -69,7 +70,7 @@ def start(update: Update, context: CallbackContext) -> int:
 
 def handle_answer(answer, update: Update):
     if len(answer.text) > 0:
-        update.message.reply_text(answer.text)
+        update.message.reply_text(answer.text, parse_mode=ParseMode.HTML)
     elif len(answer.links.text):
         links = answer.links
         buttons = []
@@ -78,6 +79,7 @@ def handle_answer(answer, update: Update):
         reply_markup = InlineKeyboardMarkup(buttons)
         update.message.reply_text(
             links.text,
+            parse_mode=ParseMode.HTML,
             reply_markup=reply_markup,
         )
     elif len(answer.photo) > 0:
@@ -115,6 +117,7 @@ def choice(update: Update, context: CallbackContext) -> int:
     else:
         update.message.reply_text(
             answer.text,
+            parse_mode=ParseMode.HTML,
             reply_markup=current_keyboard,
         )
 
