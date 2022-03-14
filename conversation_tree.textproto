@@ -339,6 +339,22 @@ node {
                 url: "https://www.shelter4ua.com/ua"
             }
             url {
+                label: "Сайт с картой"
+                url: "https://mapahelp.me"
+            }
+            url {
+                label: "United for U"
+                url: "https://www.unitedforu.org/"
+            }
+            url {
+                label: "Размещение в отелях (до 5 дней)"
+                url: "https://hospitality-helps.org/ru/main"
+            }
+            url {
+                label: "Сайт с картой"
+                url: "https://mapahelp.me"
+            }
+            url {
                 label: "Памятка о безопасности (UA)"
                 url: "https://t.me/UASchweiz/2390"
             }
