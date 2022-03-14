@@ -17,6 +17,8 @@ def validate_conversation_links(conversation):
     valid_ids = []
 
     def collect_id(node):
+        print(
+            "E: node['%s'] there are more than one node with the same name." % (node.name)) if node.name in valid_ids else None
         valid_ids.append(node.name)
     for node in conversation.node:
         visit_node(node, collect_id)
