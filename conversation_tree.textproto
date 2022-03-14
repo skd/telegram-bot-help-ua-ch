@@ -10,42 +10,27 @@ node {
             url: "https://t.me/UASchweiz"
         }
     } }
-    link: { name: "Where are you?" }
-    link: { name: "Who are you?" }
+    link { name: "Я беженец / беженка" }
+    link { name: "Я волонтер и хочу помочь" }
 }
 node {
-    name: "Where are you?"
-    answer { text: "I am located in the cloud" }
-    answer { links {
-        text: "Here are some links on the cloud"
-        url {
-            label: "Cloud on Google Search"
-            url: "http://goo.gl/search?cloud"
-        }
-        url {
-            label: "Delfi"
-            url: "http://www.delfi.lt/"
-        }
-    } }
-    answer { photo: "clouds.jpg" }
-    answer { text: "What about you?" }
-    link { name: "On Mars" }
-    link { name: "On Earth" }
-    link { name: "/start" }
+    name: "Я беженец / беженка"
+    answer { text: "Внимательно ознакомьтесь с информацией ниже" }
+    link { name: "Регистрация и юридический статус" }
+    link { name: "Жилье на первое время" }
 }
 node {
-    name: "On Mars"
-    answer { text: "Ooh, that's cold." }
+    name: "Регистрация и юридический статус"
+    answer { text: "Внимательно ознакомьтесь с информацией ниже" }
+    link { name: "Адреса регистрации" }
+    link { name: "Контакты государственных координаторов беженцев" }
+    link { name: "Информация про статус S" }
 }
 node {
-    name: "On Earth"
-    answer { text: "Sweet! I am there too... I hope." }
-}
-node {
-    name: "Who are you?"
-    answer { text: "I don't know. Do you have an idea?" }
+    name: "Контакты государственных координаторов беженцев"
+    answer { text: "Контакты координаторов беженцев по кантонам (ожидайте, что беседа будет на местном языке, возможно англ. Можно писать email)" }
     link { branch { 
-        name: "No"
+        name: "AG (Aargau)"
         answer { text: "That's too bad!"} 
         link { branch {
             name: "I said, no!"
@@ -53,27 +38,221 @@ node {
         } }
     } }
     link { branch { 
-        name: "Yes"
+        name: "AI (Appenzel)"
         answer { text: "Yes? Tell me!"} 
     } }
     link { branch { 
-        name: "You are a bot."
-        answer { text: "Oh, really? I didn't know."} 
-    } }
-    link { branch { 
-        name: "You are the beginning of skynet."
+        name: "GE (Geneve)"
         answer { text: "I'll be back..."} 
     } }
     link { branch { 
-        name: "You have no purpose."
+        name: "LU (Luzern)"
+        answer { text: "Oh, really? I didn't know."} 
+    } }
+    link { branch { 
+        name: "TG (Thurgau)"
+        answer { text: "I'll be back..."} 
+    } }
+    link { branch { 
+        name: "UR (Uri)"
         answer { text: "Oh, no..."} 
     } }
     link { branch { 
-        name: "This is just another button."
+        name: "VD (Vaud)"
+        answer { text: "I'll be back..."} 
+    } }
+    link { branch { 
+        name: "ZH (Zurich)"
         answer { text: "It tickles! :)"} 
     } }
     link { branch { 
-        name: "This is yet another button."
+        name: "ZG (Zug)"
         answer { text: "It does indeed tickle! :)"} 
     } }
+}
+node {
+    name: "Адреса регистрации"
+    answer { text: "Пока гарантированно можно зарегистрироваться в 6 официальных центрах беженцев" }
+    link { branch { 
+        name: "AG (Aargau)"
+        answer { text: "That's too bad!"} 
+        link { branch {
+            name: "I said, no!"
+            answer { text: "Ok, ok..." }
+        } }
+    } }
+    link { branch { 
+        name: "AI (Appenzel)"
+        answer { text: "Yes? Tell me!"} 
+    } }
+    link { branch { 
+        name: "GE (Geneve)"
+        answer { text: "I'll be back..."} 
+    } }
+    link { branch { 
+        name: "LU (Luzern)"
+        answer { text: "Oh, really? I didn't know."} 
+    } }
+    link { branch { 
+        name: "TG (Thurgau)"
+        answer { text: "I'll be back..."} 
+    } }
+    link { branch { 
+        name: "UR (Uri)"
+        answer { text: "Oh, no..."} 
+    } }
+    link { branch { 
+        name: "VD (Vaud)"
+        answer { text: "I'll be back..."} 
+    } }
+    link { branch { 
+        name: "ZH (Zurich)"
+        answer { text: "It tickles! :)"} 
+    } }
+    link { branch { 
+        name: "ZG (Zug)"
+        answer { text: "It does indeed tickle! :)"} 
+    } }
+}
+
+node {
+    name: "Жилье на первое время"
+    answer { 
+        text: "Тут информация только про жилье на первое время - для тех, кто убегает в безопасность. "}
+
+        link { name: "Сервис поиска семейного жилья от  RefugeeCouncil" }
+        link { name: "Официальные Asylzentren (жилье-лагерь и регистрация). Там безопасно." }
+        link { name: "Другие сервисы (нет возможности проверить, если у вас получилось и все хорошо, напишите нам в чат)" }
+    
+}
+
+node { 
+    name: "Сервис поиска семейного жилья от  RefugeeCouncil"
+    answer { 
+    links {
+    text: "Это сервис, которых сводит волонтеров, которые готовы принять у себя беженцев на какой-то срок. Это семьи, открывших для вас дом, чтобы вы переждали первое трудное время. Уважайте помогающих вам людей, жить вместе с незнакомцами - не всегда просто. Используйте эту возможность чтобы перевести дух и ознакомиться с обычаями этой страны."
+    url {
+        label: "Жилье рекомендованное RefugeeCouncil (это безопаснее всего, срок зависит от хозяев жилья, гарантий, что это долгосрочное, нет)"
+        url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+    }
+
+} } }
+
+node { 
+    name:"Официальные Asylzentren (жилье-лагерь и регистрация). Там безопасно." 
+    answer { 
+    text: "Лагеря беженцев. Это точно безопасно. Если вам нужен безопасный кров, то тут вы его точно найдете"
+    
+
+} 
+link { branch { 
+    name: "AG (Aargau)"
+    answer { text: "That's too bad!"} 
+    link { branch {
+        name: "I said, no!"
+        answer { text: "Ok, ok..." }
+    } }
+} }
+link { branch { 
+    name: "AI (Appenzel)"
+    answer { text: "Yes? Tell me!"} 
+} }
+link { branch { 
+    name: "GE (Geneve)"
+    answer { text: "I'll be back..."} 
+} }
+link { branch { 
+    name: "LU (Luzern)"
+    answer { text: "Oh, really? I didn't know."} 
+} }
+link { branch { 
+    name: "TG (Thurgau)"
+    answer { text: "I'll be back..."} 
+} }
+link { branch { 
+    name: "UR (Uri)"
+    answer { text: "Oh, no..."} 
+} }
+link { branch { 
+    name: "VD (Vaud)"
+    answer { text: "I'll be back..."} 
+} }
+link { branch { 
+    name: "ZH (Zurich)"
+    answer { text: "It tickles! :)"} 
+} }
+link { branch { 
+    name: "ZG (Zug)"
+    answer { text: "It does indeed tickle! :)"} 
+} }
+}
+
+node { 
+    name: "Другие сервисы (нет возможности проверить, если у вас получилось и все хорошо, напишите нам в чат)"
+    answer {
+        links {
+            text: "Другие ссылки на ресурсы с жильем, они нами не проверены, девушкам рекомендуется пользоваться ресурсами выше или по крайней мере держаться группами"
+            url {
+                label: "Ссылка раз"
+                url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+            }
+            url {
+                label: "Ссылка два"
+                url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+            }
+            url {
+                label: "Памятка о безопасности"
+                url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+            }
+    }
+    
+} }
+
+node {
+    name: "Информация про статус S"
+    answer { text: "Кто спросит то, что тут написано в чате, получит по жопе" }
+}
+
+
+
+node {
+    name: "Я волонтер и хочу помочь"
+    answer { text: "Спасибо, что помогаете, ваша помощь очень ценна" }
+    link { name: "Хочу предложить жилье"}
+    link { name: "Хочу помочь иначе"}
+    
+}
+
+node {
+    name: "Хочу предложить жилье"
+    answer {
+    links {
+        text: "Рекомендуем сервис от RefugeeCouncil. Региональные свяжут вас с беженцами, но в то же время это безопасно."
+        url {
+            label: "Заполните форму на сайте, с вами свяжутся"
+            url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+        }
+}}}
+
+node {
+    name: "Хочу помочь иначе"
+    answer {
+    links {
+        text: "ищите региональные  группы в соцсетях (телеграм, facebook и тд), или обращайтесь в местные органы (миграционное управление, управление по социальным делам). По возможности мы будем добавлять ссылки тут, проверьте через пару дней"
+        url {
+            label: "Помощь от церквей"
+            url: "https://kirchen-helfen.ch/"
+        }
+    }}
+}
+
+
+
+node {
+    name: "Хочу предложить одежду и вещи"
+    answer {
+    
+        text: "Найдите региональные чаты и региональных активистов. Одежды требуется меньше, чем вы думаете."
+    
+    }  
 }
