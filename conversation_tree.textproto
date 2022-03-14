@@ -56,7 +56,7 @@ node {
     }
     link { branch { 
         name: "AG (Aargau)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "AI (Appenzell Innerrhoden)"
@@ -72,11 +72,11 @@ node {
     } }
     link { branch { 
         name: "BL (Basel-Landschaft)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "BS (Basel-Stadt)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "FR (Fribourg)"
@@ -124,7 +124,7 @@ node {
     } }
     link { branch { 
         name: "SO (Solothurn)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "SZ (Schwyz)"
@@ -186,7 +186,7 @@ node {
     }
     link { branch { 
         name: "AG (Aargau)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "AI (Appenzell Innerrhoden)"
@@ -202,11 +202,11 @@ node {
     } }
     link { branch { 
         name: "BL (Basel-Landschaft)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "BS (Basel-Stadt)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "FR (Fribourg)"
@@ -254,7 +254,7 @@ node {
     } }
     link { branch { 
         name: "SO (Solothurn)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41 58 482 12 82"} 
     } }
     link { branch { 
         name: "SZ (Schwyz)"
@@ -300,11 +300,11 @@ node {
 
     link { name: "Сервис поиска семейного жилья от  RefugeeCouncil" }
     link { name: "Официальные Asylzentren (жилье-лагерь и регистрация). Там безопасно." }
-    link { name: "Ещё сервисы (непроверено)" }
+    link { name: "Ещё сервисы (не проверено)" }
 }
 
 node {
-    name: "Сервис поиска семейного жилья от  RefugeeCouncil"
+    name: "Сервис поиска семейного жилья от RefugeeCouncil"
     answer { links {
         text: "Это сервис, которых сводит волонтеров, которые готовы принять у себя беженцев на какой-то срок. Это семьи, открывших для вас дом, чтобы вы переждали первое трудное время. Уважайте помогающих вам людей, жить вместе с незнакомцами - не всегда просто. Используйте эту возможность чтобы перевести дух и ознакомиться с обычаями этой страны."
         url {
@@ -325,10 +325,10 @@ node {
 }
 
 node { 
-    name: "Ещё сервисы (непроверено)"
+    name: "Ещё сервисы (не проверено)"
     answer {
         links {
-            text: "Другие ссылки на ресурсы с жильем, они нами не проверены, девушкам рекомендуется пользоваться ресурсами выше или по крайней мере держаться группами"
+            text: "Другие ссылки на ресурсы с жильем, которые нами не проверены. Девушкам рекомендуется пользоваться ресурсом от RefugeeCouncil или, по крайней мере, держаться группами"
             url {
                 label: "I can help"
                 url: "https://icanhelp.host/"
@@ -397,7 +397,7 @@ node {
     name: "Хочу предложить жилье"
     answer {
     links {
-        text: "Рекомендуем сервис от RefugeeCouncil. Региональные свяжут вас с беженцами, но в то же время это безопасно."
+        text: "Рекомендуем сервис от RefugeeCouncil. Региональные отделения свяжут вас с беженцами и помогут все безопасно организовать."
         url {
             label: "Заполните форму на сайте, с вами свяжутся"
             url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
@@ -407,7 +407,7 @@ node {
 node {
     name: "Хочу помочь иначе"
     answer { links {
-        text: "Ищите региональные  группы в соцсетях (телеграм, facebook и тд), или обращайтесь в местные органы (миграционное управление, управление по социальным делам). По возможности мы будем добавлять ссылки тут, проверьте через пару дней"
+        text: "Ищите региональные группы в соцсетях (телеграм, facebook и тд), или обращайтесь в местные органы (миграционное управление, управление по социальным делам). По возможности мы будем добавлять ссылки тут, проверьте через пару дней"
         url {
             label: "Помощь от церквей"
             url: "https://kirchen-helfen.ch/"
