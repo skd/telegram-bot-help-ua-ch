@@ -31,12 +31,12 @@ node {
     answer { links {
         text: 
             "Пока гарантированно можно зарегистрироваться в 6 официальных центрах беженцев: \n"
-            "Цюрих:                 Duttweilerstrasse 11, 8005 Zürich \n"
-            "Центральная и южная Швейцария:         Via Milano 23, 6830 Chiasso \n"
-            "Западная Швейцария:         Rue de l’Hôpital 60, 2017 Boudry \n"
-            "Восточная Швейцария:         Bleichemühlistrasse 6, 9450 Altstätten \n"
-            "Берн:                 Morillonstrasse 75, 3007 Bern \n"
-            "Северная Швейцария:                 Freiburgerstrasse 50, 4057 Basel \n"
+            "◾ Цюрих:                 Duttweilerstrasse 11, 8005 Zürich \n"
+            "◾ Центральная и южная Швейцария:         Via Milano 23, 6830 Chiasso \n"
+            "◾ Западная Швейцария:         Rue de l’Hôpital 60, 2017 Boudry \n"
+            "◾ Восточная Швейцария:         Bleichemühlistrasse 6, 9450 Altstätten \n"
+            "◾ Берн:                 Morillonstrasse 75, 3007 Bern \n"
+            "◾ Северная Швейцария:                 Freiburgerstrasse 50, 4057 Basel \n"
             "В данный момент центры перегружены и не всегда удается зерегистрироваться в тот же день."
         url {
             label: "Проверить уровень загруженности центра"
