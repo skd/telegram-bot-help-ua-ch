@@ -11,6 +11,7 @@ node {
             url: "https://t.me/UASchweiz"
         }
     } }
+    answer { text: "Если вы ищете дополнительную информацию, возможно, она доступна в @OldUAhelpCHBot" }
     link { name: "Я беженец / беженка" }
     link { name: "Я волонтер и хочу помочь" }
 }
