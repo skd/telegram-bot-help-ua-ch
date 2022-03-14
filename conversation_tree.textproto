@@ -23,7 +23,6 @@ node {
     name: "Регистрация и юридический статус"
     answer { text: "Внимательно ознакомьтесь с информацией ниже" }
     link { name: "Адреса регистрации" }
-    link { name: "Контакты государственных координаторов беженцев" }
     link { name: "Информация про статус S" }
 }
 node {
@@ -72,46 +71,124 @@ node {
 }
 node {
     name: "Адреса регистрации"
-    answer { text: "Пока гарантированно можно зарегистрироваться в 6 официальных центрах беженцев" }
+    answer { text: "Пока гарантированно можно зарегистрироваться в 6 официальных центрах беженцев: \n
+    Цюрих:                 Duttweilerstrasse 11, 8005 Zürich \n
+    Центральная и южная Швейцария:         Via Milano 23, 6830 Chiasso \n
+    Западная Швейцария:         Rue de l’Hôpital 60, 2017 Boudry \n
+    Восточная Швейцария:         Bleichemühlistrasse 6, 9450 Altstätten \n
+    Берн:                 Morillonstrasse 75, 3007 Bern \n
+    Северная Швейцария:                 Freiburgerstrasse 50, 4057 Basel \n
+    В данный момент центры перегружены и не всегда удается зерегистрироваться в тот же день.  
+    url {
+        label: "Проверить уровень загруженности центра"
+        url: "https://www.sem.admin.ch/sem/de/home.html"
+    }
+    Если у вас не решен вопрос с жильем, то вы можете обратиться в любой центр. Если у вас есть жилье в конкретном кантоне, то вы должны обратиться в соответствующий центр, его можно найти, выбрав ваш кантон:" }
     link { branch { 
         name: "AG (Aargau)"
-        answer { text: "That's too bad!"} 
-        link { branch {
-            name: "I said, no!"
-            answer { text: "Ok, ok..." }
-        } }
+        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
     } }
     link { branch { 
-        name: "AI (Appenzel)"
-        answer { text: "Yes? Tell me!"} 
+        name: "AI (Appenzell Innerrhoden)"
+        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41 58 480 49 50"} 
+    } }
+    link { branch { 
+        name: "AR (Appenzell Ausserrhoden)"
+        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41 58 480 49 50"} 
+    } }
+    link { branch { 
+        name: "Be (Bern)"
+        answer { text: "Morillonstrasse 75, 3007 Bern, +41 58 465 75 80"} 
+    } }
+    link { branch { 
+        name: "BL (Basel-Landschaft)"
+        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+    } }
+    link { branch { 
+        name: "BS (Basel-Stadt)"
+        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+    } }
+    link { branch { 
+        name: "FR (Fribourg)"
+        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41 58 465 03 03"} 
     } }
     link { branch { 
         name: "GE (Geneve)"
-        answer { text: "I'll be back..."} 
+        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41 58 465 03 03"} 
+    } }
+    link { branch { 
+        name: "GL (Glarus)"
+        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41 58 480 49 50"} 
+    } }
+    link { branch { 
+        name: "GR (Graubunden)"
+        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41 58 480 49 50"} 
+    } }
+    link { branch { 
+        name: "JU (Jura)"
+        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41 58 465 03 03"} 
     } }
     link { branch { 
         name: "LU (Luzern)"
-        answer { text: "Oh, really? I didn't know."} 
+        answer { text: "Via Milano 23, 6830 Chiasso, +41 58 466 70 10"} 
+    } }
+    link { branch { 
+        name: "NE (Neuchatel)"
+        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41 58 465 03 03"} 
+    } }
+    link { branch { 
+        name: "NW (Nidwalden)"
+        answer { text: "Via Milano 23, 6830 Chiasso, +41 58 466 70 10"} 
+    } }
+    link { branch { 
+        name: "OW (Obwalden)"
+        answer { text: "Via Milano 23, 6830 Chiasso, +41 58 466 70 10"} 
+    } }
+    link { branch { 
+        name: "SG (St. Gallen)"
+        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41 58 480 49 50"} 
+    } }
+    link { branch { 
+        name: "SH (Schaffhausen)"
+        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41 58 480 49 50"} 
+    } }
+    link { branch { 
+        name: "SO (Solothurn)"
+        answer { text: "Freiburgerstrasse 50, 4057 Basel,  +41 58 482 12 82"} 
+    } }
+    link { branch { 
+        name: "SZ (Schwyz)"
+        answer { text: "Via Milano 23, 6830 Chiasso, +41 58 466 70 10"} 
     } }
     link { branch { 
         name: "TG (Thurgau)"
-        answer { text: "I'll be back..."} 
+        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41 58 480 49 50"} 
+    } }
+    link { branch { 
+        name: "TI (Ticino)"
+        answer { text: "Via Milano 23, 6830 Chiasso, +41 58 466 70 10"} 
     } }
     link { branch { 
         name: "UR (Uri)"
-        answer { text: "Oh, no..."} 
+        answer { text: "Via Milano 23, 6830 Chiasso, +41 58 466 70 10"} 
     } }
     link { branch { 
         name: "VD (Vaud)"
-        answer { text: "I'll be back..."} 
+        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41 58 465 03 03"} 
+    } }
+    link { branch { 
+        name: "VS (Valais)"
+        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41 58 465 03 03"} 
     } }
     link { branch { 
         name: "ZH (Zurich)"
-        answer { text: "It tickles! :)"} 
+        answer { text: "If you already have an accomondation in the canton of Zurich you can register here: \n
+        Empfangsstelle Kasernenstrasse 49, 8004 Zürich \n
+        Otherwise Duttweilerstrasse 11, 8005 Zürich, +41 58 480 14 80"} 
     } }
     link { branch { 
         name: "ZG (Zug)"
-        answer { text: "It does indeed tickle! :)"} 
+        answer { text: "Via Milano 23, 6830 Chiasso, +41 58 466 70 10"} 
     } }
 }
 
@@ -141,50 +218,9 @@ node {
 node { 
     name:"Официальные Asylzentren (жилье-лагерь и регистрация). Там безопасно." 
     answer { 
-    text: "Лагеря беженцев. Это точно безопасно. Если вам нужен безопасный кров, то тут вы его точно найдете"
-    
-
+    text: "Лагеря беженцев. Это точно безопасно. Скорее всего вам не предоставят отдельное жилье, но если вам нужен безопасный кров, то тут вы его точно найдете. Подать зявление на это жилье нужно при регистрации"
+    link { name: "Адреса регистрации" }
 } 
-link { branch { 
-    name: "AG (Aargau)"
-    answer { text: "That's too bad!"} 
-    link { branch {
-        name: "I said, no!"
-        answer { text: "Ok, ok..." }
-    } }
-} }
-link { branch { 
-    name: "AI (Appenzel)"
-    answer { text: "Yes? Tell me!"} 
-} }
-link { branch { 
-    name: "GE (Geneve)"
-    answer { text: "I'll be back..."} 
-} }
-link { branch { 
-    name: "LU (Luzern)"
-    answer { text: "Oh, really? I didn't know."} 
-} }
-link { branch { 
-    name: "TG (Thurgau)"
-    answer { text: "I'll be back..."} 
-} }
-link { branch { 
-    name: "UR (Uri)"
-    answer { text: "Oh, no..."} 
-} }
-link { branch { 
-    name: "VD (Vaud)"
-    answer { text: "I'll be back..."} 
-} }
-link { branch { 
-    name: "ZH (Zurich)"
-    answer { text: "It tickles! :)"} 
-} }
-link { branch { 
-    name: "ZG (Zug)"
-    answer { text: "It does indeed tickle! :)"} 
-} }
 }
 
 node { 
@@ -193,16 +229,20 @@ node {
         links {
             text: "Другие ссылки на ресурсы с жильем, они нами не проверены, девушкам рекомендуется пользоваться ресурсами выше или по крайней мере держаться группами"
             url {
-                label: "Ссылка раз"
-                url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+                label: "I can help"
+                url: "https://icanhelp.host/"
             }
             url {
-                label: "Ссылка два"
-                url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+                label: "Shelter for UA"
+                url: "https://www.shelter4ua.com/ua"
             }
             url {
-                label: "Памятка о безопасности"
-                url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
+                label: "Памятка о безопасности (UA)"
+                url: "https://t.me/UASchweiz/2390"
+            }
+            url {
+                label: "Памятка о безопасности (RU)"
+                url: "https://t.me/UASchweiz/2447"
             }
     }
     
@@ -238,11 +278,14 @@ node {
     name: "Хочу помочь иначе"
     answer {
     links {
-        text: "ищите региональные  группы в соцсетях (телеграм, facebook и тд), или обращайтесь в местные органы (миграционное управление, управление по социальным делам). По возможности мы будем добавлять ссылки тут, проверьте через пару дней"
+        text: "Ищите региональные  группы в соцсетях (телеграм, facebook и тд), или обращайтесь в местные органы (миграционное управление, управление по социальным делам). По возможности мы будем добавлять ссылки тут, проверьте через пару дней"
         url {
             label: "Помощь от церквей"
             url: "https://kirchen-helfen.ch/"
         }
+        url {
+            label: "Помощь в Цюрихе"
+            url: "https://t.me/zh_helps_ukraine"
     }}
 }
 
@@ -251,7 +294,7 @@ node {
 node {
     name: "Хочу предложить одежду и вещи"
     answer {
-    
+   
         text: "Найдите региональные чаты и региональных активистов. Одежды требуется меньше, чем вы думаете."
     
     }  
