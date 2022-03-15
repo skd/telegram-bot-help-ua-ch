@@ -155,9 +155,9 @@ node {
     } }
     link { branch { 
         name: "ZH (Zurich)"
-        answer { text: "If you already have an accomondation in the canton of Zurich you can register here: \n"
+        answer { text: "Если у вас уже есть, где жить, то вы можете зарегистрироваться на: \n"
         "Empfangsstelle Kasernenstrasse 49, 8004 Zürich \n"
-        "Otherwise Duttweilerstrasse 11, 8005 Zürich, +41 58 480 14 80"}
+        "Иначе: Duttweilerstrasse 11, 8005 Zürich, +41 58 480 14 80"}
     } }
     link { branch { 
         name: "ZG (Zug)"
@@ -285,9 +285,9 @@ node {
     } }
     link { branch { 
         name: "ZH (Zurich)"
-        answer { text: "If you already have an accomondation in the canton of Zurich you can register here: \n"
+        answer { text: "Если у вас уже есть, где жить, то вы можете зарегистрироваться на: \n"
         "Empfangsstelle Kasernenstrasse 49, 8004 Zürich \n"
-        "Otherwise Duttweilerstrasse 11, 8005 Zürich, +41 58 480 14 80"}
+        "Иначе: Duttweilerstrasse 11, 8005 Zürich, +41 58 480 14 80"}
     } }
     link { branch { 
         name: "ZG (Zug)"
