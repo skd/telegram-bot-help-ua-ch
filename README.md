@@ -4,7 +4,7 @@
 Install the required Python dependencies:
 
 ```
-$ pip3 install python-telegram-bot protobuf
+$ pip3 install -r requirements.txt
 ```
 
 ### Developing data model
