@@ -382,7 +382,7 @@ node {
                 url: "https://www.admin.ch/gov/de/start/dokumentation/medienmitteilungen.msg-id-87556.html"
             }
         url {
-                label: Подробный обзор (PDF)"
+                label: "Подробный обзор (PDF)"
                 url: "https://img1.wsimg.com/blobby/go/25182b30-2fba-4b54-a8f3-bdc06e982fea/220303_Factsheet_Status_S_RU_2022-03-14_001.pdf"
             }
         }
