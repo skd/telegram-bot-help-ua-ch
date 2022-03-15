@@ -1,4 +1,12 @@
 ## Developer Guide
+### Prerequisites
+
+Install the required Python dependencies:
+
+```
+$ pip3 install python-telegram-bot protobuf
+```
+
 ### Developing data model
 
 `conversation.proto` is a schema for the data model. It tells how you should write the data model.
