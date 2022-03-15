@@ -16,3 +16,7 @@ Before commiting, run `python3 validate.py` to ensure you did not introduce any 
 
 ## Functionality wishlist
 
+- Inline buttons. A scripter should be allowed to choose what kind of buttons to have attached. They should work same as keyboard buttons
+- Better back navigation. We should track the user nav and have a proper "back" support, that works fine not only in Trees but also DAGs. Back should also support inline buttons.
+- Stats collection. We should collect basic stats (number of users, etc). Stats could be made accessible via a command.
+- Tests on pull request. We run validate.py manually, often we forget, makes deployment harder. It should be converted to a test and ran automatically.
