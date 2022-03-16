@@ -14,12 +14,13 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12\x63onversation.proto\x12\x05proto\"_\n\tUrlAnswer\x12\x0c\n\x04text\x18\x01 \x01(\t\x12!\n\x03url\x18\x02 \x03(\x0b\x32\x14.proto.UrlAnswer.Url\x1a!\n\x03Url\x12\r\n\x05label\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\"b\n\x10\x43onversationLink\x12\x0e\n\x04name\x18\x01 \x01(\tH\x00\x12)\n\x06\x62ranch\x18\x02 \x01(\x0b\x32\x17.proto.ConversationNodeH\x00\x42\x13\n\x11\x63onversation_link\"\xcf\x01\n\x10\x43onversationNode\x12\x0c\n\x04name\x18\x01 \x01(\t\x12.\n\x06\x61nswer\x18\x02 \x03(\x0b\x32\x1e.proto.ConversationNode.Answer\x12%\n\x04link\x18\x03 \x03(\x0b\x32\x17.proto.ConversationLink\x1aV\n\x06\x41nswer\x12\x0e\n\x04text\x18\x01 \x01(\tH\x00\x12!\n\x05links\x18\x02 \x01(\x0b\x32\x10.proto.UrlAnswerH\x00\x12\x0f\n\x05photo\x18\x03 \x01(\tH\x00\x42\x08\n\x06\x61nswer\"5\n\x0c\x43onversation\x12%\n\x04node\x18\x01 \x03(\x0b\x32\x17.proto.ConversationNodeb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12\x63onversation.proto\x12\x05proto\"_\n\tUrlAnswer\x12\x0c\n\x04text\x18\x01 \x01(\t\x12!\n\x03url\x18\x02 \x03(\x0b\x32\x14.proto.UrlAnswer.Url\x1a!\n\x03Url\x12\r\n\x05label\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\"Z\n\x05Venue\x12\x0b\n\x03lat\x18\x01 \x01(\x01\x12\x0b\n\x03lon\x18\x02 \x01(\x01\x12\r\n\x05title\x18\x03 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x04 \x01(\t\x12\x17\n\x0fgoogle_place_id\x18\x05 \x01(\t\"b\n\x10\x43onversationLink\x12\x0e\n\x04name\x18\x01 \x01(\tH\x00\x12)\n\x06\x62ranch\x18\x02 \x01(\x0b\x32\x17.proto.ConversationNodeH\x00\x42\x13\n\x11\x63onversation_link\"\xee\x01\n\x10\x43onversationNode\x12\x0c\n\x04name\x18\x01 \x01(\t\x12.\n\x06\x61nswer\x18\x02 \x03(\x0b\x32\x1e.proto.ConversationNode.Answer\x12%\n\x04link\x18\x03 \x03(\x0b\x32\x17.proto.ConversationLink\x1au\n\x06\x41nswer\x12\x0e\n\x04text\x18\x01 \x01(\tH\x00\x12!\n\x05links\x18\x02 \x01(\x0b\x32\x10.proto.UrlAnswerH\x00\x12\x0f\n\x05photo\x18\x03 \x01(\tH\x00\x12\x1d\n\x05venue\x18\x04 \x01(\x0b\x32\x0c.proto.VenueH\x00\x42\x08\n\x06\x61nswer\"5\n\x0c\x43onversation\x12%\n\x04node\x18\x01 \x03(\x0b\x32\x17.proto.ConversationNodeb\x06proto3')
 
 
 
 _URLANSWER = DESCRIPTOR.message_types_by_name['UrlAnswer']
 _URLANSWER_URL = _URLANSWER.nested_types_by_name['Url']
+_VENUE = DESCRIPTOR.message_types_by_name['Venue']
 _CONVERSATIONLINK = DESCRIPTOR.message_types_by_name['ConversationLink']
 _CONVERSATIONNODE = DESCRIPTOR.message_types_by_name['ConversationNode']
 _CONVERSATIONNODE_ANSWER = _CONVERSATIONNODE.nested_types_by_name['Answer']
@@ -38,6 +39,13 @@ UrlAnswer = _reflection.GeneratedProtocolMessageType('UrlAnswer', (_message.Mess
   })
 _sym_db.RegisterMessage(UrlAnswer)
 _sym_db.RegisterMessage(UrlAnswer.Url)
+
+Venue = _reflection.GeneratedProtocolMessageType('Venue', (_message.Message,), {
+  'DESCRIPTOR' : _VENUE,
+  '__module__' : 'conversation_pb2'
+  # @@protoc_insertion_point(class_scope:proto.Venue)
+  })
+_sym_db.RegisterMessage(Venue)
 
 ConversationLink = _reflection.GeneratedProtocolMessageType('ConversationLink', (_message.Message,), {
   'DESCRIPTOR' : _CONVERSATIONLINK,
@@ -75,12 +83,14 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _URLANSWER._serialized_end=124
   _URLANSWER_URL._serialized_start=91
   _URLANSWER_URL._serialized_end=124
-  _CONVERSATIONLINK._serialized_start=126
-  _CONVERSATIONLINK._serialized_end=224
-  _CONVERSATIONNODE._serialized_start=227
-  _CONVERSATIONNODE._serialized_end=434
-  _CONVERSATIONNODE_ANSWER._serialized_start=348
-  _CONVERSATIONNODE_ANSWER._serialized_end=434
-  _CONVERSATION._serialized_start=436
-  _CONVERSATION._serialized_end=489
+  _VENUE._serialized_start=126
+  _VENUE._serialized_end=216
+  _CONVERSATIONLINK._serialized_start=218
+  _CONVERSATIONLINK._serialized_end=316
+  _CONVERSATIONNODE._serialized_start=319
+  _CONVERSATIONNODE._serialized_end=557
+  _CONVERSATIONNODE_ANSWER._serialized_start=440
+  _CONVERSATIONNODE_ANSWER._serialized_end=557
+  _CONVERSATION._serialized_start=559
+  _CONVERSATION._serialized_end=612
 # @@protoc_insertion_point(module_scope)

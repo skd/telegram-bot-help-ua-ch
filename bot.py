@@ -7,6 +7,7 @@ from telegram import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     Update,
+    Venue,
 )
 from telegram.ext import (
     CallbackContext,
@@ -72,7 +73,7 @@ def start(update: Update, context: CallbackContext) -> int:
 def handle_answer(answer, update: Update):
     if len(answer.text) > 0:
         update.message.reply_text(answer.text, parse_mode=ParseMode.HTML)
-    elif len(answer.links.text):
+    elif len(answer.links.text) > 0:
         links = answer.links
         buttons = []
         for url in links.url:
@@ -83,6 +84,13 @@ def handle_answer(answer, update: Update):
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup,
         )
+    elif len(answer.venue.title) > 0:
+        update.message.reply_venue(
+            latitude=answer.venue.lat,
+            longitude=answer.venue.lon,
+            title=answer.venue.title,
+            address=answer.venue.address,
+            google_place_id=answer.venue.google_place_id)
     elif len(answer.photo) > 0:
         photob = None
         if answer.photo in PHOTO_CACHE:

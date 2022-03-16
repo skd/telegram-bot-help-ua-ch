@@ -11,6 +11,14 @@ message UrlAnswer {
     repeated Url url = 2;
 }
 
+message Venue {
+  double lat = 1;
+  double lon = 2;
+  string title = 3;
+  string address = 4;
+  string google_place_id = 5;
+}
+
 message ConversationLink {
     oneof conversation_link {
         string name = 1;
@@ -26,6 +34,7 @@ message ConversationNode {
             string text = 1;
             UrlAnswer links = 2;
             string photo = 3;
+            Venue venue = 4;
         }
     }
     repeated Answer answer = 2;
