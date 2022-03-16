@@ -12,7 +12,7 @@ $ pip3 install -r requirements.txt
 `conversation.proto` is a schema for the data model. It tells how you should write the data model.
 The data model is in `conversation_tree.textproto`
 
-Before commiting, run `python3 validate.py` to ensure you did not introduce any problems.
+Before commiting, run `python3 -m pytest` to ensure you did not introduce any problems.
 
 ### Testing your bot
 
