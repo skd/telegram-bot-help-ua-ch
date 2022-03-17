@@ -531,14 +531,14 @@ node {
     answer { 
         text: "Статус «S» дает право на работу в Швейцарию, в том числе возможность быть самозанятым. Здесь мы собираем ссылки на сайты по поиску работы и предложения для Украинцев. "
     }
-    link { name: "Программы поиска работы для украинских беженцев" }
+    link { name: "Поиск работы для украинских беженцев" }
     link { name: "Сайты для поиска работы в Швейцарии" }
 }
 
 node {
-    name: "Программы поиска работы для украинских беженцев"
+    name: "Поиск работы для украинских беженцев"
     answer { links {
-        text: "Здесь собраны ресурсы, специализирующиеся на работе для украинцев. "        
+        text: "Здесь собраны ресурсы, специализирующиеся на работе для украинцев."        
         
         url {
             label: "Телеграм чат по поиску работы в Швейцарии"
@@ -573,7 +573,7 @@ node {
             url: "https://hrforukraine.notion.site"
         }
         url {
-            label: "CANADEM is recruiting for its response to Ukraine - Russian, Ukrainian, Polish speakers"
+            label: "CANADEM recruiting RU, UA, PL speakers"
             url: "https://reliefweb.int/job/3826886/canadem-recruiting-its-response-ukraine-russian-ukrainian-polish-speakers"
         }
         url {
@@ -627,11 +627,11 @@ node {
             url: "https://www.deutschkurse-zh.ch/kurssuche.html"
         }
         url {
-            label: "Бесплатные уроки немецкого от института Гете в Украине"
+            label: "Бесплатные уроки немецкого от института Гете"
             url: "https://www.goethe.de/ins/ua/uk/m/spr/kur/aka.html"
         }       
         url {
-            label: "Онлайн-школа для детей + EN и DE для всех"
+            label: "Онлайн-школа для детей и всех (EN и DE)"
             url: "https://t.me/UASchweiz/3122"
         }
         url {
@@ -651,7 +651,7 @@ node {
             url: "https://ru.duolingo.com/course/de/ru/%D0%A3%D1%87%D0%B8%D1%82%D1%8C-%D0%BD%D0%B5%D0%BC%D0%B5%D1%86%D0%BA%D0%B8%D0%B9"
         }
         url {
-            label: "Канал с бесплатными книгами и уроками немецкого, французского и английского"
+            label: "Канал с бесплатными книгами и уроками DE, FR и EN"
             url: "https://t.me/learn8languages"
         }
     } }
@@ -671,7 +671,7 @@ node {
                 url: "https://t.me/c/1737223638/55"
             } 
         url {
-                label: "Ветеринарные клиники"
+                label: "Ветеринарные клиники: оформление животных"
                 url: "https://t.me/UASchweiz/2832"
             }
         }
