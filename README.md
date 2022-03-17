@@ -34,3 +34,4 @@ Before commiting, run `python3 -m pytest` to ensure you did not introduce any pr
 ### Nice to have
 
 - [ ] Move strings displayed to the user from the code to a config (conversation_tree.textproto). START_NODE should be also configurable.
+- [ ] conversation_tree.textproto formatter.
