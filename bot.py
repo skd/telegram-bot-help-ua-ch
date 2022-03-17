@@ -51,20 +51,21 @@ def done(update: Update, context: CallbackContext) -> int:
 
 
 def start_over(update: Update, context: CallbackContext) -> int:
-    context.user_data["current_node"] = START_NODE
-    return choice(update, context)
+    return start(update, context)
 
 
 def back_choice(update: Update, context: CallbackContext) -> int:
-    current_node = context.user_data["current_node"]
-    new_node = CONVERSATION_DATA["back_nav"][current_node] \
-        if current_node in CONVERSATION_DATA["back_nav"] else START_NODE
-    context.user_data["current_node"] = new_node
+    user_data = context.user_data
+    user_data["nav_stack"] = user_data["nav_stack"][:-1] \
+        if len(user_data["nav_stack"]) > 1 else user_data["nav_stack"]
+    new_node_name = user_data["nav_stack"][-1]
+    user_data["current_node"] = new_node_name
     return choice(update, context)
 
 
 def start(update: Update, context: CallbackContext) -> int:
     context.user_data["current_node"] = START_NODE
+    context.user_data["nav_stack"] = [ START_NODE ]
     return choice(update, context)
 
 
@@ -99,10 +100,21 @@ def choice(update: Update, context: CallbackContext) -> int:
         next_node_name = update.message.text
     if next_node_name in CONVERSATION_DATA["keyboard_by_name"]:
         user_data["current_node"] = next_node_name
+        try:
+            existing_index = user_data["nav_stack"].index(next_node_name)
+            user_data["nav_stack"] = user_data["nav_stack"][:existing_index]
+        except ValueError:
+            pass
+        user_data["nav_stack"].append(next_node_name)
     current_node_name = user_data["current_node"]
 
     current_node = CONVERSATION_DATA["node_by_name"][next_node_name]
-    current_keyboard = CONVERSATION_DATA["keyboard_by_name"][current_node_name]
+    current_keyboard_options = [ *CONVERSATION_DATA["keyboard_by_name"][current_node_name] ]
+    if len(user_data["nav_stack"]) > 1:
+        current_keyboard_options.append([BACK])
+    if next_node_name != START_NODE:
+        current_keyboard_options.append([START_OVER])
+    current_keyboard = ReplyKeyboardMarkup(current_keyboard_options, one_time_keyboard=True)
 
     for answer in current_node.answer[:-1]:
         handle_answer(answer, update)
@@ -180,7 +192,7 @@ def create_node_by_name(conversation: conversation_proto.Conversation):
     return node_by_name
 
 
-def create_keyboards(node_by_name):
+def create_keyboard_options(node_by_name):
     keyboard_by_name = {}
     for name in node_by_name:
         if len(node_by_name[name].link) > 0:
@@ -190,38 +202,8 @@ def create_keyboards(node_by_name):
                     options.append([link.name])
                 elif len(link.branch.name) > 0:
                     options.append([link.branch.name])
-            if name in CONVERSATION_DATA["back_nav"]:
-                options.append([BACK])
-            if name != START_NODE:
-                options.append([START_OVER])
-            # options.append([DONE])
-            keyboard_by_name[name] = ReplyKeyboardMarkup(
-                options, one_time_keyboard=True)
+            keyboard_by_name[name] = options
     return keyboard_by_name
-
-
-def create_back_nav_visitor(prev: conversation_proto.ConversationNode,
-                            node: conversation_proto.ConversationNode, consumer,
-                            visited: Set = set()):
-    visited.add(node.name)
-    consumer(prev, node)
-    if len(node.link) > 0:
-        for subnode in node.link:
-            if len(subnode.branch.name) > 0 and not subnode.branch.name in visited:
-                create_back_nav_visitor(node, subnode.branch, consumer)
-            elif len(subnode.name) > 0 and not subnode.name in visited:
-                create_back_nav_visitor(
-                    node, CONVERSATION_DATA["node_by_name"][subnode.name], consumer)
-
-
-def create_back_nav(root: conversation_proto.ConversationNode):
-    back_nav = {}
-
-    def updater(prev, node):
-        if not prev is None:
-            back_nav[node.name] = prev.name
-    create_back_nav_visitor(None, root, updater)
-    return back_nav
 
 
 if __name__ == "__main__":
@@ -230,8 +212,6 @@ if __name__ == "__main__":
         conversation = text_format.Parse(
             f_buffer, conversation_proto.Conversation())
     CONVERSATION_DATA["node_by_name"] = create_node_by_name(conversation)
-    CONVERSATION_DATA["back_nav"] = create_back_nav(
-        CONVERSATION_DATA["node_by_name"][START_NODE])
-    CONVERSATION_DATA["keyboard_by_name"] = create_keyboards(
+    CONVERSATION_DATA["keyboard_by_name"] = create_keyboard_options(
         CONVERSATION_DATA["node_by_name"])
     start_bot()
