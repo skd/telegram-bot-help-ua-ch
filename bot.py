@@ -24,9 +24,16 @@ import proto.conversation_pb2 as conversation_proto
 import redis
 import telegram.error
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+import stats
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
 logger = logging.getLogger(__name__)
+bot_stats = stats.Stats()
+
+DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
 
 CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK = range(3)
 
@@ -40,18 +47,28 @@ SEND_FEEDBACK = "✅ Послать отзыв"
 THANK_FOR_FEEDBACK = "Спасибо вам за отзыв!"
 PROMPT_REPLY = "Выберите пункт"
 ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начать сначала."
+STATISTICS = "Статистика"
 
 START_NODE = "/start"
+
+ADMIN_USERS = [
+    "SymbioticMe",
+    "l2kate",
+    "edgnkv",
+    "zygimantas",
+    "thecrdev",
+]
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
 FEEDBACK_CHANNEL_ID = None
 BOT_PERSISTENCE_DATABASE = 0
 
+
 def handle_error(update: object, context: CallbackContext):
     logger.error(msg="Exception while handling an update:",
                  exc_info=context.error)
-    if not FEEDBACK_CHANNEL_ID is None:
+    if FEEDBACK_CHANNEL_ID is not None:
         update_text = update.to_dict() if isinstance(update, Update) else str(update)
         message = (
             f"An exception was raised when handling an update:\n"
@@ -71,6 +88,7 @@ def back_choice(update: Update, context: CallbackContext) -> int:
     user_data = context.user_data
     user_data["nav_stack"] = user_data["nav_stack"][:-1] \
         if len(user_data["nav_stack"]) > 1 else user_data["nav_stack"]
+
     new_node_name = user_data["nav_stack"][-1]
     user_data["current_node"] = new_node_name
     return choice(update, context)
@@ -80,6 +98,17 @@ def start(update: Update, context: CallbackContext) -> int:
     context.user_data["current_node"] = START_NODE
     context.user_data["nav_stack"] = [START_NODE]
     return choice(update, context)
+
+
+def show_stats(update: Update, context: CallbackContext) -> int:
+    keyboard_opts = [[START_OVER]]
+    if update.message.from_user.username in ADMIN_USERS:
+        update.message.reply_text(
+            bot_stats.compute(), parse_mode=ParseMode.HTML,
+            reply_markup=ReplyKeyboardMarkup(keyboard_opts),
+        )
+
+    return CHOOSING
 
 
 def handle_answer(answer, update: Update):
@@ -107,7 +136,7 @@ def handle_answer(answer, update: Update):
         photob = None
         if answer.photo in PHOTO_CACHE:
             photob = PHOTO_CACHE[answer.photo]
-        with open("photo/%s" % answer.photo, 'rb') as photo_file:
+        with open("photo/%s" % answer.photo, "rb") as photo_file:
             photob = photo_file.read()
             PHOTO_CACHE[answer.photo] = photob
         update.message.reply_photo(photob)
@@ -116,6 +145,7 @@ def handle_answer(answer, update: Update):
 def choice(update: Update, context: CallbackContext) -> int:
     user_data = context.user_data
     next_node_name = user_data["current_node"]
+
     if update.message.text in CONVERSATION_DATA["node_by_name"]:
         next_node_name = update.message.text
     if next_node_name in CONVERSATION_DATA["keyboard_by_name"]:
@@ -126,7 +156,10 @@ def choice(update: Update, context: CallbackContext) -> int:
         except ValueError:
             pass
         user_data["nav_stack"].append(next_node_name)
+
     current_node_name = user_data["current_node"]
+    user_id = update.message.from_user.id
+    bot_stats.collect(user_id, current_node_name)
 
     current_node = CONVERSATION_DATA["node_by_name"][next_node_name]
     current_keyboard_options = [
@@ -135,8 +168,12 @@ def choice(update: Update, context: CallbackContext) -> int:
         current_keyboard_options.append([BACK])
     if next_node_name != START_NODE:
         current_keyboard_options.append([START_OVER])
-    elif not FEEDBACK_CHANNEL_ID is None:
-        current_keyboard_options.append([FEEDBACK])
+    else:
+        if FEEDBACK_CHANNEL_ID is not None:
+            current_keyboard_options.append([FEEDBACK])
+        if update.message.from_user.username in ADMIN_USERS:
+            current_keyboard_options.append([STATISTICS])
+
     current_keyboard = ReplyKeyboardMarkup(
         current_keyboard_options, one_time_keyboard=True)
 
@@ -200,6 +237,8 @@ def send_feedback(update: Update, context: CallbackContext):
                 "Error when trying to forward feedback to channel %s",
                 FEEDBACK_CHANNEL_ID, exc_info=e)
 
+    bot_stats.collect(update.message.from_user.id, "Send Feedback")
+
     context.user_data["feedback"] = []
     update.message.reply_text(THANK_FOR_FEEDBACK)
     return start(update, context)
@@ -213,7 +252,12 @@ def redis_instance():
     url = urlparse(redis_url)
     use_ssl = url.scheme == 'rediss'
     logger.info(f"Enabling Redis-based bot persistence.\nRedis URL: '{redis_url}'\nUse SSL: {use_ssl}")
-    return redis.Redis(db=BOT_PERSISTENCE_DATABASE, host=url.hostname, port=url.port, username=url.username, password=url.password, ssl=use_ssl, ssl_cert_reqs=None)
+    return redis.Redis(
+        db=BOT_PERSISTENCE_DATABASE,
+        host=url.hostname, port=url.port,
+        username=url.username, password=url.password,
+        ssl=use_ssl, ssl_cert_reqs=None,
+    )
 
 
 def redis_persistence():
@@ -227,7 +271,7 @@ def redis_persistence():
     return RedisPersistence(rd, encryption_key_bytes)
 
 
-def conversation_handler():
+def conversation_handler(persistent: bool):
     return ConversationHandler(
         entry_points=[MessageHandler(
             Filters.chat_type.private & Filters.all, start)],
@@ -239,6 +283,9 @@ def conversation_handler():
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.regex(f"^{FEEDBACK}$"), start_feedback),
+                MessageHandler(
+                    Filters.chat_type.private &
+                    Filters.regex(f"^{STATISTICS}$"), show_stats),
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.text & ~Filters.regex(f"^{START_OVER}$"), choice),
@@ -256,32 +303,37 @@ def conversation_handler():
         fallbacks=[
             MessageHandler(
                 Filters.chat_type.private &
-                Filters.regex('%s$' % (START_OVER)), start),
+                Filters.regex("%s$" % (START_OVER)), start),
         ],
         name="main",
-        persistent=True,
+        persistent=persistent,
     )
 
 
 def start_bot():
     api_key = os.getenv('TELEGRAM_BOT_API_KEY')
+    webhook_url = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
+
     persistence = None
-    if os.getenv("PERSIST_SESSIONS", '') == 'true':
+    persist_sessions = os.getenv("PERSIST_SESSIONS", '') == 'true'
+    if persist_sessions:
         persistence = redis_persistence()
 
     updater = Updater(token=api_key, persistence=persistence, use_context=True)
     dispatcher = updater.dispatcher
 
-    dispatcher.add_handler(conversation_handler())
+    dispatcher.add_handler(conversation_handler(persist_sessions))
     dispatcher.add_error_handler(handle_error)
 
-    if os.getenv('USE_WEBHOOK', '') == 'true':
-        port = int(os.environ.get('PORT', 5000))
-        logger.info("Starting webhook at port %s", port)
-        updater.start_webhook(listen='0.0.0.0',
-                              port=int(port),
-                              url_path=api_key,
-                              webhook_url="https://telegram-bot-help-ua-ch.herokuapp.com/" + api_key)
+    if os.getenv("USE_WEBHOOK", "") == "true":
+        port = int(os.environ.get("PORT", 5000))
+        logger.log(logging.INFO, "Starting webhook at port %s", port)
+        updater.start_webhook(
+            listen="0.0.0.0",
+            port=int(port),
+            url_path=api_key,
+            webhook_url=f"{webhook_url}/{api_key}",
+        )
     else:
         updater.start_polling()
 
@@ -293,7 +345,7 @@ def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set
     consumer(node)
     if len(node.link) > 0:
         for subnode in node.link:
-            if len(subnode.branch.name) > 0 and not subnode.branch.name in visited:
+            if len(subnode.branch.name) > 0 and subnode.branch.name not in visited:
                 visit_node(subnode.branch, consumer, visited)
 
 
@@ -322,16 +374,16 @@ def create_keyboard_options(node_by_name):
 
 
 if __name__ == "__main__":
-    with open('conversation_tree.textproto', 'r') as f:
+    with open("conversation_tree.textproto", "r") as f:
         f_buffer = f.read()
-        conversation = text_format.Parse(
-            f_buffer, conversation_proto.Conversation())
+        conversation = text_format.Parse(f_buffer, conversation_proto.Conversation())
+
     CONVERSATION_DATA["node_by_name"] = create_node_by_name(conversation)
     CONVERSATION_DATA["keyboard_by_name"] = create_keyboard_options(
         CONVERSATION_DATA["node_by_name"])
 
-    FEEDBACK_CHANNEL_ID = os.getenv('FEEDBACK_CHANNEL_ID', None)
-    if not FEEDBACK_CHANNEL_ID is None:
+    FEEDBACK_CHANNEL_ID = os.getenv("FEEDBACK_CHANNEL_ID", None)
+    if FEEDBACK_CHANNEL_ID is not None:
         FEEDBACK_CHANNEL_ID = int(FEEDBACK_CHANNEL_ID)
 
     start_bot()
