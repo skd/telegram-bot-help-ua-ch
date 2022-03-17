@@ -397,7 +397,7 @@ node {
 node {
     name: "Сайты для поиска работы в Швейцарии"
     answer { links {
-        text: ""
+        text: "Здесь собраны общие швейцарские сайты для поиска работы."
         url {
             label: "Software developer jobs in Switzerland"
             url: "https://swissdevjobs.ch/"
