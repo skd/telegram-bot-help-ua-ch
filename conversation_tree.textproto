@@ -165,135 +165,6 @@ node {
     } }
 }
 
-node {
-    name: "Адреса регистрации"
-    answer { links {
-        text: 
-            "Пока гарантированно можно зарегистрироваться в 6 официальных центрах беженцев: \n"
-            "◾ <b>Цюрих</b>: Duttweilerstrasse 11, 8005 Zürich \n"
-            "◾ <b>Центральная и южная Швейцария</b>: Via Milano 23, 6830 Chiasso \n"
-            "◾ <b>Западная Швейцария</b>: Rue de l’Hôpital 60, 2017 Boudry \n"
-            "◾ <b>Восточная Швейцария</b>: Bleichemühlistrasse 6, 9450 Altstätten \n"
-            "◾ <b>Берн</b>: Morillonstrasse 75, 3007 Bern \n"
-            "◾ <b>Северная Швейцария</b>: Freiburgerstrasse 50, 4057 Basel \n\n"
-            "В данный момент центры перегружены, и не всегда удается зарегистрироваться в тот же день. Онлайн-регистрация в разработке."
-        url {
-            label: "Проверить уровень загруженности центра"
-            url: "https://www.sem.admin.ch/sem/de/home.html"
-        } }
-    }
-    answer { text: 
-        "Если у вас не решен вопрос с жильем, то вы можете обратиться в любой центр. "
-        "Если у вас есть жилье в конкретном кантоне, то вы должны обратиться в соответствующий центр. "
-        "Его можно найти, выбрав ваш кантон:"
-    }
-    link { branch { 
-        name: "AG (Aargau)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41(58)482-1282"}
-    } }
-    link { branch { 
-        name: "AI (Appenzell Innerrhoden)"
-        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41(58)480-49-50"}
-    } }
-    link { branch { 
-        name: "AR (Appenzell Ausserrhoden)"
-        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41(58)480-49-50"}
-    } }
-    link { branch { 
-        name: "BE (Bern)"
-        answer { text: "Morillonstrasse 75, 3007 Bern, +41(58)465-75-80"}
-    } }
-    link { branch { 
-        name: "BL (Basel-Landschaft)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41(58)482-12-82"}
-    } }
-    link { branch { 
-        name: "BS (Basel-Stadt)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41(58)482-12-82"}
-    } }
-    link { branch { 
-        name: "FR (Fribourg)"
-        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41(58)465-03-03"}
-    } }
-    link { branch { 
-        name: "GE (Geneve)"
-        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41(58)465-03-03"}
-    } }
-    link { branch { 
-        name: "GL (Glarus)"
-        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41(58)480-49-50"}
-    } }
-    link { branch { 
-        name: "GR (Graubunden)"
-        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41(58)480-49-50"}
-    } }
-    link { branch { 
-        name: "JU (Jura)"
-        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41(58)465-03-03"}
-    } }
-    link { branch { 
-        name: "LU (Luzern)"
-        answer { text: "Via Milano 23, 6830 Chiasso, +41(58)466-70-10"}
-    } }
-    link { branch { 
-        name: "NE (Neuchatel)"
-        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41(58)465-03-03"}
-    } }
-    link { branch { 
-        name: "NW (Nidwalden)"
-        answer { text: "Via Milano 23, 6830 Chiasso, +41(58)466-70-10"}
-    } }
-    link { branch { 
-        name: "OW (Obwalden)"
-        answer { text: "Via Milano 23, 6830 Chiasso, +41(58)466-70-10"}
-    } }
-    link { branch { 
-        name: "SG (St. Gallen)"
-        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41(58)480-49-50"}
-    } }
-    link { branch { 
-        name: "SH (Schaffhausen)"
-        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41(58)480-49-50"}
-    } }
-    link { branch { 
-        name: "SO (Solothurn)"
-        answer { text: "Freiburgerstrasse 50, 4057 Basel, +41(58)482-12-82"}
-    } }
-    link { branch { 
-        name: "SZ (Schwyz)"
-        answer { text: "Via Milano 23, 6830 Chiasso, +41(58)466-70-10"}
-    } }
-    link { branch { 
-        name: "TG (Thurgau)"
-        answer { text: "Bleichemühlistrasse 6, 9450 Altstätten, +41(58)480-49-50"}
-    } }
-    link { branch { 
-        name: "TI (Ticino)"
-        answer { text: "Via Milano 23, 6830 Chiasso, +41(58)466-70-10"}
-    } }
-    link { branch { 
-        name: "UR (Uri)"
-        answer { text: "Via Milano 23, 6830 Chiasso, +41(58)466-70-10"}
-    } }
-    link { branch { 
-        name: "VD (Vaud)"
-        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41(58)465-03-03"}
-    } }
-    link { branch { 
-        name: "VS (Valais)"
-        answer { text: "Rue de l’Hôpital 60, 2017 Boudry, +41(58)465-03-03"}
-    } }
-    link { branch { 
-        name: "ZH (Zurich)"
-        answer { text: "Если у вас уже есть, где жить, то вы можете зарегистрироваться на: \n"
-        "Empfangsstelle Kasernenstrasse 49, 8004 Zürich \n"
-        "Иначе: Duttweilerstrasse 11, 8005 Zürich, +41(58)480-14-80"}
-    } }
-    link { branch { 
-        name: "ZG (Zug)"
-        answer { text: "Via Milano 23, 6830 Chiasso, +41(58)466-70-10"}
-    } }
-}
 
 node {
     name: "Жилье на первое время"
@@ -314,10 +185,11 @@ node {
               "Уважайте помогающих вам людей, жить вместе с незнакомцами – не всегда просто. "
               "Используйте эту возможность, чтобы перевести дух и ознакомиться с обычаями этой страны."
         url {
-            label: "Жилье, рекомендованное RefugeeCouncil (Это безопаснее всего. Срок зависит от хозяев жилья. Гарантий, что оно долгосрочное, нет.)"
+            label: "Жилье, рекомендованное RefugeeCouncil (Это безопаснее всего. Срок зависит от хозяев жилья. "
+            "Гарантий, что оно долгосрочное, нет.)"
             url: "https://campax.typeform.com/to/JcgDEbPl?typeform-source=campax.org"
-        } 
-    } } 
+        }
+    } }
 }
 
 node { 
@@ -327,7 +199,7 @@ node {
         "но если вам нужен безопасный кров, то тут вы его точно найдете. Подать зявление на это жилье "
         "нужно при регистрации."
     }
-    link { name: "Адреса регистрации" }
+    link { name: "Адреса регистрации беженцев" }
 }
 
 node { 
@@ -367,8 +239,9 @@ node {
                 label: "Памятка о безопасности (RU)"
                 url: "https://t.me/UASchweiz/2447"
             }
+        }
     }
-} }
+}
 
 node {
     name: "Подробнее про статус «S»"
