@@ -2,7 +2,9 @@ name: Format textproto files
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - '**'
+      - '!main'
     paths:
       - '**.textproto'
 
