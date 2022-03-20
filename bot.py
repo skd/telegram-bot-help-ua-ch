@@ -36,12 +36,32 @@ CONTINUE_FEEDBACK = "Пишите дальше, если хотите что-т�
 SEND_FEEDBACK = "✅ Послать отзыв"
 THANK_FOR_FEEDBACK = "Спасибо вам за отзыв!"
 PROMPT_REPLY = "Выберите пункт"
+ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начат с начало."
 
 START_NODE = "/start"
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
 FEEDBACK_CHANNEL_ID = None
+
+
+def handle_error(update: object, context: CallbackContext):
+    logger.error(msg="Exception while handling an update:",
+                 exc_info=context.error)
+    if not FEEDBACK_CHANNEL_ID is None:
+        update_text = update.to_dict() if isinstance(update, Update) else str(update)
+        message = (
+            f"An exception was raised when handling an update:\n"
+            f"update={update_text}\n"
+            f"context.user_data={context.user_data}\n"
+            f"Error: {context.error}"
+        )
+        context.bot.send_message(
+            chat_id=FEEDBACK_CHANNEL_ID, text=message)
+    update.message.reply_text(
+        ERROR_OCCURED,
+        reply_markup=ReplyKeyboardMarkup(
+            [[START_OVER]], one_time_keyboard=True))
 
 
 def back_choice(update: Update, context: CallbackContext) -> int:
@@ -220,6 +240,7 @@ def start_bot():
         ],
     )
     dispatcher.add_handler(conv_handler)
+    dispatcher.add_error_handler(handle_error)
 
     if os.getenv('USE_WEBHOOK', '') == 'true':
         port = int(os.environ.get('PORT', 5000))
