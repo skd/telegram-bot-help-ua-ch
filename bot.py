@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from session_persistence import NullSessionPersistence, SessionPersistence
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -14,12 +15,13 @@ from telegram.ext import (
     MessageHandler,
     Updater,
 )
-from typing import Set
+from typing import Dict, Set
 import google.protobuf.text_format as text_format
 import logging
 import os
 import proto.conversation_pb2 as conversation_proto
 import telegram.error
+import redis
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -44,6 +46,7 @@ CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
 FEEDBACK_CHANNEL_ID = None
 
+session_persistence = None
 
 def handle_error(update: object, context: CallbackContext):
     logger.error(msg="Exception while handling an update:",
@@ -66,6 +69,7 @@ def handle_error(update: object, context: CallbackContext):
 
 def back_choice(update: Update, context: CallbackContext) -> int:
     user_data = context.user_data
+    recollect_nav_stack(update.message.from_user.id, user_data)
     user_data["nav_stack"] = user_data["nav_stack"][:-1] \
         if len(user_data["nav_stack"]) > 1 else user_data["nav_stack"]
     new_node_name = user_data["nav_stack"][-1]
@@ -73,10 +77,38 @@ def back_choice(update: Update, context: CallbackContext) -> int:
     return choice(update, context)
 
 
-def start(update: Update, context: CallbackContext) -> int:
-    context.user_data["current_node"] = START_NODE
-    context.user_data["nav_stack"] = [START_NODE]
+def start(update: Update, context: CallbackContext, restore_nav_stack: bool = True) -> int:
+    user_data = context.user_data
+    if restore_nav_stack:
+        recollect_nav_stack(update.message.from_user.id, user_data)
+    else:
+        reset_navigation(user_data)
     return choice(update, context)
+
+
+def start_over(update: Update, context: CallbackContext) -> int:
+    return start(update, context, False)
+
+
+def reset_navigation(user_data: Dict) -> None:
+    user_data["current_node"] = START_NODE
+    user_data["nav_stack"] = [START_NODE]
+
+
+def recollect_nav_stack(user_id: int, user_data: Dict) -> None:
+    if "nav_stack" in user_data:
+        return
+    nav_stack = session_persistence.load_nav_stack(user_id)
+    if nav_stack is None:
+        reset_navigation(user_data)
+        return
+    # Drop the entire stack if the tree has changed after a server restart.
+    for node_name in nav_stack:
+        if not node_name in CONVERSATION_DATA["node_by_name"]:
+            reset_navigation(user_data)
+            return
+    user_data["nav_stack"] = nav_stack
+    user_data["current_node"] = nav_stack[-1]
 
 
 def handle_answer(answer, update: Update):
@@ -123,6 +155,7 @@ def choice(update: Update, context: CallbackContext) -> int:
         except ValueError:
             pass
         user_data["nav_stack"].append(next_node_name)
+        session_persistence.save_nav_stack(update.message.from_user.id, user_data["nav_stack"])
     current_node_name = user_data["current_node"]
 
     current_node = CONVERSATION_DATA["node_by_name"][next_node_name]
@@ -203,25 +236,28 @@ def send_feedback(update: Update, context: CallbackContext):
 
 
 def start_bot():
+    global session_persistence
     api_key = os.getenv('TELEGRAM_BOT_API_KEY')
-    updater = Updater(
-        token=api_key, use_context=True)
+    updater = Updater(token=api_key, use_context=True)
     dispatcher = updater.dispatcher
 
+    start_over_filter = Filters.regex(f"^{START_OVER}$")
+    back_filter = Filters.regex(f"^{BACK}$")
+    back_handler = MessageHandler(Filters.chat_type.private & back_filter, back_choice)
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(
-            Filters.chat_type.private & Filters.all, start)],
+        entry_points=[
+            MessageHandler(Filters.chat_type.private & Filters.all & ~back_filter, start),
+            back_handler
+        ],
         states={
             CHOOSING: [
-                MessageHandler(
-                    Filters.chat_type.private &
-                    Filters.regex(f"^{BACK}$"), back_choice),
+                back_handler,
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.regex(f"^{FEEDBACK}$"), start_feedback),
                 MessageHandler(
                     Filters.chat_type.private &
-                    Filters.text & ~Filters.regex(f"^{START_OVER}$"), choice),
+                    Filters.text & ~start_over_filter, choice),
             ],
             COLLECT_FEEDBACK: [
                 MessageHandler(
@@ -230,18 +266,19 @@ def start_bot():
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.all &
-                    ~Filters.regex(f"^{START_OVER}$"), collect_feedback),
+                    ~start_over_filter, collect_feedback),
             ]
         },
         fallbacks=[
             MessageHandler(
                 Filters.chat_type.private &
-                Filters.regex('%s$' % (START_OVER)), start),
+                start_over_filter, start_over),
         ],
     )
     dispatcher.add_handler(conv_handler)
     dispatcher.add_error_handler(handle_error)
 
+    session_persistence = SessionPersistence() if os.environ.get("PERSIST_SESSIONS", '') == 'true' else NullSessionPersistence()
     if os.getenv('USE_WEBHOOK', '') == 'true':
         port = int(os.environ.get('PORT', 5000))
         logger.info("Starting webhook at port %s", port)
