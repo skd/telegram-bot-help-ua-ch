@@ -5,9 +5,7 @@ from telegram import (
     InlineKeyboardMarkup,
     ParseMode,
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
     Update,
-    Venue,
 )
 from telegram.ext import (
     CallbackContext,
@@ -16,43 +14,34 @@ from telegram.ext import (
     MessageHandler,
     Updater,
 )
-from typing import Dict, Set
+from typing import Set
 import google.protobuf.text_format as text_format
 import logging
 import os
 import proto.conversation_pb2 as conversation_proto
+import telegram.error
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-CHOOSING = range(1)
+CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK = range(3)
 
 BACK = "Назад"
 START_OVER = "Вернуться в начало"
-DONE = "Завершить"
+FEEDBACK = "Оставить отзыв боту"
+PROMPT_FEEDBACK = "Пишите свой отзыв прямо тут."
+CONTINUE_FEEDBACK = "Пишите дальше, если хотите что-то добавить. " + \
+    "Нажмите «Послать отзыв» если готовые послать отзыв."
+SEND_FEEDBACK = "✅ Послать отзыв"
+THANK_FOR_FEEDBACK = "Спасибо вам за отзыв!"
 PROMPT_REPLY = "Выберите пункт"
 
 START_NODE = "/start"
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
-
-
-def done(update: Update, context: CallbackContext) -> int:
-    user_data = context.user_data
-
-    update.message.reply_text(
-        "Спасибо! Напишите /start чтобы начать снова.",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-
-    user_data.clear()
-    return ConversationHandler.END
-
-
-def start_over(update: Update, context: CallbackContext) -> int:
-    return start(update, context)
+FEEDBACK_CHANNEL_ID = None
 
 
 def back_choice(update: Update, context: CallbackContext) -> int:
@@ -66,7 +55,7 @@ def back_choice(update: Update, context: CallbackContext) -> int:
 
 def start(update: Update, context: CallbackContext) -> int:
     context.user_data["current_node"] = START_NODE
-    context.user_data["nav_stack"] = [ START_NODE ]
+    context.user_data["nav_stack"] = [START_NODE]
     return choice(update, context)
 
 
@@ -117,12 +106,16 @@ def choice(update: Update, context: CallbackContext) -> int:
     current_node_name = user_data["current_node"]
 
     current_node = CONVERSATION_DATA["node_by_name"][next_node_name]
-    current_keyboard_options = [ *CONVERSATION_DATA["keyboard_by_name"][current_node_name] ]
+    current_keyboard_options = [
+        *CONVERSATION_DATA["keyboard_by_name"][current_node_name]]
     if len(user_data["nav_stack"]) > 1:
         current_keyboard_options.append([BACK])
     if next_node_name != START_NODE:
         current_keyboard_options.append([START_OVER])
-    current_keyboard = ReplyKeyboardMarkup(current_keyboard_options, one_time_keyboard=True)
+    elif not FEEDBACK_CHANNEL_ID is None:
+        current_keyboard_options.append([FEEDBACK])
+    current_keyboard = ReplyKeyboardMarkup(
+        current_keyboard_options, one_time_keyboard=True)
 
     for answer in current_node.answer[:-1]:
         handle_answer(answer, update)
@@ -132,45 +125,105 @@ def choice(update: Update, context: CallbackContext) -> int:
         handle_answer(answer, update)
         update.message.reply_text(
             PROMPT_REPLY,
-            reply_markup=current_keyboard,
-        )
+            reply_markup=current_keyboard)
     else:
         update.message.reply_text(
             answer.text,
             parse_mode=ParseMode.HTML,
-            reply_markup=current_keyboard,
-        )
+            reply_markup=current_keyboard)
 
     return CHOOSING
 
 
-def start_bot():
+def start_feedback(update: Update, context: CallbackContext):
+    if FEEDBACK_CHANNEL_ID is None:
+        return start(update, context)
+    context.user_data["feedback"] = []
+    keyboard_options = [START_OVER]
+    update.message.reply_text(
+        PROMPT_FEEDBACK,
+        reply_markup=ReplyKeyboardMarkup(
+            [keyboard_options], one_time_keyboard=True))
+    return COLLECT_FEEDBACK
 
+
+def collect_feedback(update: Update, context: CallbackContext):
+    if FEEDBACK_CHANNEL_ID is None:
+        return start(update, context)
+    context.user_data["feedback"].append(update.message)
+
+    keyboard_options = []
+    if len(context.user_data["feedback"]) > 0:
+        keyboard_options.append([SEND_FEEDBACK])
+    keyboard_options.append([START_OVER])
+    update.message.reply_text(
+        CONTINUE_FEEDBACK,
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard_options, one_time_keyboard=True))
+    return COLLECT_FEEDBACK
+
+
+def send_feedback(update: Update, context: CallbackContext):
+    if FEEDBACK_CHANNEL_ID is None:
+        return start(update, context)
+    if len(context.user_data["feedback"]) == 0:
+        return start(update, context)
+
+    for msg in context.user_data["feedback"]:
+        try:
+            msg.forward(int(FEEDBACK_CHANNEL_ID))
+        except telegram.error.TelegramError as e:
+            logger.warning(
+                "Error when trying to forward feedback to channel %s",
+                FEEDBACK_CHANNEL_ID, exc_info=e)
+
+    context.user_data["feedback"] = []
+    update.message.reply_text(THANK_FOR_FEEDBACK)
+    return start(update, context)
+
+
+def start_bot():
     api_key = os.getenv('TELEGRAM_BOT_API_KEY')
     updater = Updater(
         token=api_key, use_context=True)
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(Filters.all, start)],
+        entry_points=[MessageHandler(
+            Filters.chat_type.private & Filters.all, start)],
         states={
             CHOOSING: [
                 MessageHandler(
-                    Filters.regex('^(' + BACK + ')$'), back_choice),
+                    Filters.chat_type.private &
+                    Filters.regex(f"^{BACK}$"), back_choice),
                 MessageHandler(
-                    Filters.text & ~Filters.regex('^%s|%s$' % (DONE, START_OVER)), choice),
+                    Filters.chat_type.private &
+                    Filters.regex(f"^{FEEDBACK}$"), start_feedback),
+                MessageHandler(
+                    Filters.chat_type.private &
+                    Filters.text & ~Filters.regex(f"^{START_OVER}$"), choice),
             ],
+            COLLECT_FEEDBACK: [
+                MessageHandler(
+                    Filters.chat_type.private &
+                    Filters.regex(f"^{SEND_FEEDBACK}$"), send_feedback),
+                MessageHandler(
+                    Filters.chat_type.private &
+                    Filters.all &
+                    ~Filters.regex(f"^{START_OVER}$"), collect_feedback),
+            ]
         },
         fallbacks=[
-            MessageHandler(Filters.regex('%s$' % (START_OVER)), start_over),
-            # MessageHandler(Filters.regex('%s$' % (DONE)), done),
+            MessageHandler(
+                Filters.chat_type.private &
+                Filters.regex('%s$' % (START_OVER)), start),
         ],
     )
     dispatcher.add_handler(conv_handler)
 
     if os.getenv('USE_WEBHOOK', '') == 'true':
         port = int(os.environ.get('PORT', 5000))
-        logger.log(logging.INFO, "Starting webhook at port %s", port)
+        logger.info("Starting webhook at port %s", port)
         updater.start_webhook(listen='0.0.0.0',
                               port=int(port),
                               url_path=api_key,
@@ -222,4 +275,9 @@ if __name__ == "__main__":
     CONVERSATION_DATA["node_by_name"] = create_node_by_name(conversation)
     CONVERSATION_DATA["keyboard_by_name"] = create_keyboard_options(
         CONVERSATION_DATA["node_by_name"])
+
+    FEEDBACK_CHANNEL_ID = os.getenv('FEEDBACK_CHANNEL_ID', None)
+    if not FEEDBACK_CHANNEL_ID is None:
+        FEEDBACK_CHANNEL_ID = int(FEEDBACK_CHANNEL_ID)
+
     start_bot()

@@ -22,11 +22,23 @@ Before commiting, run `python3 -m pytest` to ensure you did not introduce any pr
 - At the end you will get a token. This will allow to start a bot on the username you specified in the wizard.
 - Assuming you have cloned the git repo, run `env TELEGRAM_BOT_API_KEY="<token>" python3 bot.py`
 
+#### Testing feedback collection
+
+Feedback is forwarded to a channel of choice, which is controlled via
+an env variable `FEEDBACK_CHANNEL_ID`. Here's how you test the bot:
+
+- Create a new channel on telegram and invite your bot to it.
+- Invite a bot `@RawDataBot` to your channel. It should print out your channel id (int) upon joining the channel.
+- Start your bot by running `env TELEGRAM_BOT_API_KEY="<token>" FEEDBACK_CHANNEL_ID="<your channel id>" python3 bot.py`
+- Go to a private chat with your bot, click on enter feedback, and follow-through the flow.
+- Your bot should have forwarded the feedback to your channel.
+
 ## Functionality wishlist
 
 - [ ] Inline buttons. A scripter should be allowed to choose what kind of buttons to have attached. They should work same as keyboard buttons.
 - [ ] Stats collection. We should collect basic stats (number of users, etc). Stats could be made accessible via a command.
 - [ ] Persistent sessions. Persist user state across restarts.
+- [x] Option to collect feedback.
 - [x] Better back navigation. We should track the user nav and have a proper "back" support, that works fine not only in Trees but also DAGs. Back should also support inline buttons. (Credit: Alex)
 - [x] Send a map pointer with addresses. (Credit: Alex)
 - [x] Tests on pull request. We run validate.py manually, often we forget, makes deployment harder. It should be converted to a test and ran automatically. (Credit: Alex)
