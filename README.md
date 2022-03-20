@@ -39,6 +39,7 @@ an env variable `FEEDBACK_CHANNEL_ID`. Here's how you test the bot:
 - [ ] Stats collection. We should collect basic stats (number of users, etc). Stats could be made accessible via a command.
 - [ ] Persistent sessions. Persist user state across restarts.
 - [x] Option to collect feedback.
+- [x] Handle errors by forwarding them to a feedback channel.
 - [x] Better back navigation. We should track the user nav and have a proper "back" support, that works fine not only in Trees but also DAGs. Back should also support inline buttons. (Credit: Alex)
 - [x] Send a map pointer with addresses. (Credit: Alex)
 - [x] Tests on pull request. We run validate.py manually, often we forget, makes deployment harder. It should be converted to a test and ran automatically. (Credit: Alex)
