@@ -20,6 +20,7 @@ node {
   answer { text: "Если вы ищете дополнительную информацию, возможно, она доступна в @OldUAhelpCHBot" }
   link { name: "Я беженец / беженка" }
   link { name: "Я волонтер и хочу помочь" }
+  link { name: "Региональные чаты в Швейцарии и Европе" }
 }
 node {
   name: "Я беженец / беженка"
@@ -876,6 +877,192 @@ node {
     }
   }
 }
+
+node {
+  name: "Региональные чаты в Швейцарии и Европе"
+  answer { text: "Здесь вы можете найти локальные чаты с информацией и помощью." }
+  link { name: "Региональные чаты в Швейцарии" }
+  link { name: "Региональные чаты в Европе" }
+}
+
+
+node {
+  name: "Региональные чаты в Швейцарии"
+  answer {
+    links {
+      text:""
+      url {
+        label: "Цюрих: https://t.me/zh_helps_UArefugee"
+        url: "https://t.me/zh_helps_UArefugee"
+      }
+      url {
+        label: "Цюрих: https://t.me/zh_helps_ukraine"
+        url: "https://t.me/zh_helps_ukraine"
+      }
+      url {
+        label: "Цюрих: https://t.me/Zh_helps_UA_mums (можно со всем вопросами про детей в Швейцарии скорее всего)"
+        url: " https://t.me/Zh_helps_UA_mums"
+      }
+      url {
+        label: "Базель: https://t.me/BaselUkraine"
+        url: "https://t.me/BaselUkraine"
+      }
+      url {
+        label: "Ааргау: https://t.me/AargauUkraine"
+        url: "https://t.me/AargauUkraine"
+      }
+      url {
+        label: "Кантон Шаффхаузен: https://t.me/+aDgGOoiukhNhNzAy"
+        url: "https://t.me/+aDgGOoiukhNhNzAy"
+      }
+      url {
+        label: "Кантон Шаффхаузен, сайт с официальной информацией"
+        url: "https://sh.ch/CMS/Webseite/Kanton-Schaffhausen/Beh-rde/Verwaltung/Departement-des-Innern/Migrationsamt-und-Passb-ro/Ukraine--Kantonale-Anlaufstelle-10250559-DE.html"
+      }
+      url {
+        label: "Санкт-Галлен: https://t.me/StGallenUkraine"
+        url: "https://t.me/StGallenUkraine"
+      }
+      url {
+        label: "Тургау: https://t.me/ThurgauUkraine"
+        url: "https://t.me/ThurgauUkraine"
+      }
+      url {
+        label: "Центральная Швейцария (Цуг): https://t.me/+q894LAg3kQ1hNjRk"
+        url: "https://t.me/+q894LAg3kQ1hNjRk"
+      }
+      url {
+        label: "Центральная Швейцария (Цуг), группа в фейсбуке"
+        url: "https://www.facebook.com/groups/344127394434549"
+      }      
+      url {
+        label: "Люцерн: https://chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
+        url: "https://chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
+      }
+      url {
+        label: "Люцерн: https://t.me/LuzernUkraine"
+        url: "https://t.me/LuzernUkraine"
+      }      
+      url {
+        label: "Люцерн: https://t.me/LuzernUAHilfe"
+        url: "https://t.me/LuzernUAHilfe"
+      }
+      url {
+        label: "Женева и Во: https://t.me/GeneveUkraine"
+        url: "https://t.me/GeneveUkraine"
+      }
+      url {
+        label: "Женева и Во: https://t.me/chatsuisse"
+        url: "https://t.me/chatsuisse"
+      }
+      url {
+        label: "Во (Лозанна): https://t.me/LousanneUkraine"
+        url: "https://t.me/LousanneUkraine"
+      }
+      url {
+        label: "Во (Лозанна), группа в фейсбуке"
+        url: "https://www.facebook.com/groups/3223556504546235/?ref=share"
+      }
+      url {
+        label: "Вале (Валлис): https://t.me/ValaisUkraine"
+        url: "https://t.me/ValaisUkraine"
+      }
+      url {
+        label: "Люцерн: https://chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
+        url: "https://chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
+      }
+      url {
+        label: "Люцерн: https://t.me/LuzernUkraine"
+        url: "https://t.me/LuzernUkraine"
+      }      
+      url {
+        label: "Люцерн: https://t.me/LuzernUAHilfe"
+        url: "https://t.me/LuzernUAHilfe"
+      }
+      url {
+        label: "Женева и Во: https://t.me/GeneveUkraine"
+        url: "https://t.me/GeneveUkraine"
+      }
+      url {
+        label: "Женева и Во: https://t.me/chatsuisse"
+        url: "https://t.me/chatsuisse"
+      }
+      url {
+        label: "Во (Лозанна): https://t.me/LousanneUkraine"
+        url: "https://t.me/LousanneUkraine"
+      }
+      url {
+        label: "Во (Лозанна), группа в фейсбуке"
+        url: "https://www.facebook.com/groups/3223556504546235/?ref=share"
+      }
+      url {
+        label: "Вале (Валлис): https://t.me/ValaisUkraine"
+        url: "https://t.me/ValaisUkraine"
+      }
+      url {
+        label: "Берн: https://t.me/help_people_fromUkraine"
+        url: "https://t.me/help_people_fromUkraine"
+      }
+      url {
+        label: "Фрибур: https://t.me/+h5QVWdAJof5jY2My"
+        url: "https://t.me/+h5QVWdAJof5jY2My"
+      }      
+      url {
+        label: "Невшатель: https://t.me/westandwithukraina"
+        url: "https://t.me/westandwithukraina"
+      }
+      url {
+        label: "Тичино: https://t.me/TicinoLuganoUkraine"
+        url: "https://t.me/TicinoLuganoUkraine"
+      }
+      url {
+        label: "Волонтёры в Базеле"
+        url: "https://www.fff-basel.ch/"
+      }
+    }
+  }
+}  
+
+node {
+  name: "Региональные чаты в Европе"
+  answer {
+    links {
+      text:""
+      url {
+        label: "Помощь украинцам в Дании 🇩🇰 "
+        url: "https://t.me/refugeesinDenmark"
+      }
+      url {
+        label: "Помощь украинцам в  Бельгии 🇧🇪 "
+        url: "https://t.me/refugeesinBelgium"
+      }
+      url {
+        label: "Помощь украинцам в  Польше 🇵🇱 "
+        url: "https://t.me/refugeesinPoland"
+      }
+      url {
+        label: "Помощь украинцам в Франции🇫🇷 "
+        url: "https://t.me/refugeesinFrance"
+      }
+      url {
+        label: "Помощь украинцам в Германии 🇩🇪 "
+        url: "https://t.me/refugees_in_Germany"
+      }
+      url {
+        label: "Помощь украинцам в Украине 🇺🇦 "
+        url: "https://t.me/refugeesinUkraine"
+      }
+      url {
+        label: "Помощь украинцам в Швеции🇸🇪 "
+        url: "https://t.me/refugeesinSweden"
+      }
+      url {
+        label: "Помощь украинцам в Австрии🇦🇹 "
+        url: "https://t.me/refugeesinAustria"
+      }
+    }
+  }  
+}  
 
 node {
   name: "Я волонтер и хочу помочь"
