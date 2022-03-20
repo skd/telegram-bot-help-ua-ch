@@ -976,7 +976,7 @@ node {
       }
       url {
         label: "Цюрих, чат по вопросам детей"
-        url: " https://t.me/Zh_helps_UA_mums"
+        url: "https://t.me/Zh_helps_UA_mums"
       }
       url {
         label: "Шаффхаузен: t.me/+aDgGOoiukhNhNzAy"
