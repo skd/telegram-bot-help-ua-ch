@@ -1,5 +1,8 @@
-# Mac OS garbage
+# Mac OS
 .DS_Store
+
+# Visual Sutdio
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
