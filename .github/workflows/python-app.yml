@@ -7,11 +7,15 @@ on:
   push:
     branches: [ main ]
     paths:
+      - '**.proto'
       - '**.py'
+      - '**.textproto'
   pull_request:
     branches: [ main ]
     paths:
+      - '**.proto'
       - '**.py'
+      - '**.textproto'
 
 jobs:
   build:
