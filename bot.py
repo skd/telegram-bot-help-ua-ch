@@ -248,7 +248,7 @@ def start_bot():
         updater.start_webhook(listen='0.0.0.0',
                               port=int(port),
                               url_path=api_key,
-                              webhook_url="https://telegram-bot-help-ua-ch.herokuapp.com/" + api_key)
+                              webhook_url=f"https://{os.environ.get('HEROKU_APP_NAME', 'telegram-bot-help-ua-ch')}.herokuapp.com/{api_key}")
     else:
         updater.start_polling()
 
