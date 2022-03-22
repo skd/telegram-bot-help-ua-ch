@@ -1,47 +1,58 @@
+import logging
 import pickle
 from collections import defaultdict
 from copy import deepcopy
+from cryptography.fernet import Fernet, InvalidToken
 from typing import Any, DefaultDict, Dict, Optional, Tuple
 from redis import Redis
 
 from telegram.ext import BasePersistence
 from telegram.ext.utils.types import CDCData, ConversationDict
 
+logger = logging.getLogger(__name__)
+
 
 class RedisPersistence(BasePersistence):
     '''
         Using Redis to make the bot persistent.
-        This is a patched version of redispersistence with the
-        ConversationDict import package fixed.
-        Fix posted in https://github.com/Mortafix/RedisPersistence/pull/2.
+        This is a patched version of redispersistence with some code fixes, the
+        ConversationDict import package fixed, and the serialized state encrypted.
+        Package fix posted in https://github.com/Mortafix/RedisPersistence/pull/2.
     '''
 
-    def __init__(self,redis: Redis,on_flush: bool = False):
-        super().__init__(store_user_data=True,store_chat_data=True,store_bot_data=True)
+    def __init__(self, redis: Redis, key: bytes, on_flush: bool = False):
+        super().__init__(
+            store_user_data=True,
+            store_chat_data=True,
+            store_bot_data=True)
         self.redis: Redis = redis
         self.on_flush = on_flush
         self.user_data: Optional[DefaultDict[int, Dict]] = None
         self.chat_data: Optional[DefaultDict[int, Dict]] = None
         self.bot_data: Optional[Dict] = None
         self.conversations: Optional[Dict[str, Dict[Tuple, Any]]] = None
+        self.fernet = Fernet(key) if key else None
 
     def load_redis(self) -> None:
         try:
             data_bytes = self.redis.get('TelegramBotPersistence')
             if data_bytes:
+                if self.fernet:
+                    data_bytes = self.fernet.decrypt(data_bytes)
                 data = pickle.loads(data_bytes)
                 self.user_data = defaultdict(dict, data['user_data'])
                 self.chat_data = defaultdict(dict, data['chat_data'])
                 # For backwards compatibility with files not containing bot data
                 self.bot_data = data.get('bot_data', {})
                 self.conversations = data['conversations']
-            else:
-                self.conversations = dict()
-                self.user_data = defaultdict(dict)
-                self.chat_data = defaultdict(dict)
-                self.bot_data = {}
+                return
         except Exception as exc:
-            raise TypeError(f"Something went wrong unpickling from Redis") from exc
+            logger.error("Failed to load bot state from Redis, discarding.", exc_info = exc)
+        # Set defaults in case of an exception or a missing pickle.
+        self.conversations = dict()
+        self.user_data = defaultdict(dict)
+        self.chat_data = defaultdict(dict)
+        self.bot_data = {}
 
     def dump_redis(self) -> None:
         data = {
@@ -50,44 +61,37 @@ class RedisPersistence(BasePersistence):
             'chat_data': self.chat_data,
             'bot_data': self.bot_data,
         }
-        data_bytes = pickle.dumps(data)
-        self.redis.set('TelegramBotPersistence',data_bytes)
+        pickle_data = pickle.dumps(data)
+        data_bytes = self.fernet.encrypt(pickle_data) if self.fernet else pickle_data
+        self.redis.set('TelegramBotPersistence', data_bytes)
 
     def get_user_data(self) -> DefaultDict[int, Dict[Any, Any]]:
         '''Returns the user_data from the pickle on Redis if it exists or an empty :obj:`defaultdict`.'''
-        if self.user_data:
-            pass
-        else:
+        if self.user_data is None:
             self.load_redis()
         return deepcopy(self.user_data)  # type: ignore[arg-type]
 
     def get_chat_data(self) -> DefaultDict[int, Dict[Any, Any]]:
         '''Returns the chat_data from the pickle on Redis if it exists or an empty :obj:`defaultdict`.'''
-        if self.chat_data:
-            pass
-        else:
+        if self.chat_data is None:
             self.load_redis()
         return deepcopy(self.chat_data)  # type: ignore[arg-type]
 
     def get_bot_data(self) -> Dict[Any, Any]:
         '''Returns the bot_data from the pickle on Redis if it exists or an empty :obj:`dict`.'''
-        if self.bot_data:
-            pass
-        else:
+        if self.bot_data is None:
             self.load_redis()
         return deepcopy(self.bot_data)  # type: ignore[arg-type]
 
     def get_conversations(self, name: str) -> ConversationDict:
         '''Returns the conversations from the pickle on Redis if it exsists or an empty dict.'''
-        if self.conversations:
-            pass
-        else:
+        if self.conversations is None:
             self.load_redis()
         return self.conversations.get(name, {}).copy()  # type: ignore[union-attr]
 
     def update_conversation(self, name: str, key: Tuple[int, ...], new_state: Optional[object]) -> None:
         '''Will update the conversations for the given handler and depending on :attr:`on_flush` save the pickle on Redis.'''
-        if not self.conversations:
+        if self.conversations is None:
             self.conversations = dict()
         if self.conversations.setdefault(name, {}).get(key) == new_state:
             return
