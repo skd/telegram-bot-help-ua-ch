@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from bot_redis_persistence import RedisPersistence
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -15,10 +16,12 @@ from telegram.ext import (
     Updater,
 )
 from typing import Set
+from urllib.parse import urlparse
 import google.protobuf.text_format as text_format
 import logging
 import os
 import proto.conversation_pb2 as conversation_proto
+import redis
 import telegram.error
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -43,7 +46,7 @@ START_NODE = "/start"
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
 FEEDBACK_CHANNEL_ID = None
-
+BOT_PERSISTENCE_DATABASE = 0
 
 def handle_error(update: object, context: CallbackContext):
     logger.error(msg="Exception while handling an update:",
@@ -202,10 +205,25 @@ def send_feedback(update: Update, context: CallbackContext):
     return start(update, context)
 
 
+def redis_instance():
+    redis_url = os.getenv("REDIS_TLS_URL")
+    if redis_url is None:
+        redis_url = "redis://localhost:6379"
+
+    url = urlparse(redis_url)
+    use_ssl = url.scheme == 'rediss'
+    logger.info(f"Enabling redis-based bot persistence.\nRedis URL: '{redis_url}'\nUse SSL: {use_ssl}")
+    return redis.Redis(db=BOT_PERSISTENCE_DATABASE, host=url.hostname, port=url.port, username=url.username, password=url.password, ssl=use_ssl, ssl_cert_reqs=None)
+
+
 def start_bot():
     api_key = os.getenv('TELEGRAM_BOT_API_KEY')
-    updater = Updater(
-        token=api_key, use_context=True)
+    persistence = None
+    if os.getenv("PERSIST_SESSIONS", '') == 'true':
+        rd = redis_instance()
+        persistence = RedisPersistence(rd)
+
+    updater = Updater(token=api_key, persistence=persistence, use_context=True)
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
@@ -238,6 +256,8 @@ def start_bot():
                 Filters.chat_type.private &
                 Filters.regex('%s$' % (START_OVER)), start),
         ],
+        name="main",
+        persistent=True,
     )
     dispatcher.add_handler(conv_handler)
     dispatcher.add_error_handler(handle_error)
