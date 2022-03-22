@@ -212,21 +212,23 @@ def redis_instance():
 
     url = urlparse(redis_url)
     use_ssl = url.scheme == 'rediss'
-    logger.info(f"Enabling redis-based bot persistence.\nRedis URL: '{redis_url}'\nUse SSL: {use_ssl}")
+    logger.info(f"Enabling Redis-based bot persistence.\nRedis URL: '{redis_url}'\nUse SSL: {use_ssl}")
     return redis.Redis(db=BOT_PERSISTENCE_DATABASE, host=url.hostname, port=url.port, username=url.username, password=url.password, ssl=use_ssl, ssl_cert_reqs=None)
 
 
-def start_bot():
-    api_key = os.getenv('TELEGRAM_BOT_API_KEY')
-    persistence = None
-    if os.getenv("PERSIST_SESSIONS", '') == 'true':
-        rd = redis_instance()
-        persistence = RedisPersistence(rd)
+def redis_persistence():
+    encryption_key_bytes = None
+    encryption_key = os.getenv("BOT_STATE_ENCRYPTION_KEY")
+    if encryption_key is None:
+        logger.error("*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***")
+    else:
+        encryption_key_bytes = encryption_key.encode()
+    rd = redis_instance()
+    return RedisPersistence(rd, encryption_key_bytes)
 
-    updater = Updater(token=api_key, persistence=persistence, use_context=True)
-    dispatcher = updater.dispatcher
 
-    conv_handler = ConversationHandler(
+def conversation_handler():
+    return ConversationHandler(
         entry_points=[MessageHandler(
             Filters.chat_type.private & Filters.all, start)],
         states={
@@ -259,7 +261,18 @@ def start_bot():
         name="main",
         persistent=True,
     )
-    dispatcher.add_handler(conv_handler)
+
+
+def start_bot():
+    api_key = os.getenv('TELEGRAM_BOT_API_KEY')
+    persistence = None
+    if os.getenv("PERSIST_SESSIONS", '') == 'true':
+        persistence = redis_persistence()
+
+    updater = Updater(token=api_key, persistence=persistence, use_context=True)
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(conversation_handler())
     dispatcher.add_error_handler(handle_error)
 
     if os.getenv('USE_WEBHOOK', '') == 'true':
