@@ -83,8 +83,11 @@ def handle_error(update: object, context: CallbackContext):
             f"Error: {context.error}\n"
             f"<pre>{html.escape(tb_string)}</pre>"
         )
-        context.bot.send_message(
-            chat_id=FEEDBACK_CHANNEL_ID, text=message, parse_mode=ParseMode.HTML)
+        try:
+            context.bot.send_message(
+                chat_id=FEEDBACK_CHANNEL_ID, text=message, parse_mode=ParseMode.HTML)
+        except telegram.error.TelegramError as e:
+            logger.warning(msg="Can't send a message to a feedback channel.", exc_info=e)
     if isinstance(update, Update) and update.message is not None:
         update.message.reply_text(
             ERROR_OCCURED,
