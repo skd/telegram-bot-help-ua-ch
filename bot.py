@@ -159,7 +159,7 @@ def choice(update: Update, context: CallbackContext) -> int:
 
     current_node_name = user_data["current_node"]
     user_id = update.message.from_user.id
-    bot_stats.collect(user_id, current_node_name)
+    bot_stats.collect(user_id, next_node_name)
 
     current_node = CONVERSATION_DATA["node_by_name"][next_node_name]
     current_keyboard_options = [
@@ -340,7 +340,9 @@ def start_bot():
     updater.idle()
 
 
-def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set = set()):
+def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set=None):
+    if visited is None:
+        visited = set()
     visited.add(node.name)
     consumer(node)
     if len(node.link) > 0:
