@@ -55,7 +55,7 @@ ADMIN_USERS = [
     "SymbioticMe",
     "l2kate",
     "edgnkv",
-    "zygimantas",
+    "Zygimantas",
     "thecrdev",
 ]
 
