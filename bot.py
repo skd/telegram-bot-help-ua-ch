@@ -18,11 +18,14 @@ from telegram.ext import (
 from typing import Set
 from urllib.parse import urlparse
 import google.protobuf.text_format as text_format
+import html
+import json
 import logging
 import os
 import proto.conversation_pb2 as conversation_proto
 import redis
 import telegram.error
+import traceback
 
 import stats
 
@@ -68,20 +71,28 @@ BOT_PERSISTENCE_DATABASE = 0
 def handle_error(update: object, context: CallbackContext):
     logger.error(msg="Exception while handling an update:",
                  exc_info=context.error)
+
     if FEEDBACK_CHANNEL_ID is not None:
-        update_text = update.to_dict() if isinstance(update, Update) else str(update)
+        tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+        tb_string = ''.join(tb_list)
+        update_str = update.to_dict() if isinstance(update, Update) else str(update)
         message = (
-            f"An exception was raised when handling an update:\n"
-            f"update={update_text}\n"
-            f"context.user_data={context.user_data}\n"
-            f"Error: {context.error}"
+            f"An exception was raised when handling an update:\n\n"
+            f"update:\n<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"
+            f"context.user_data:\n<pre>{json.dumps(context.user_data, indent=2, ensure_ascii=False)}</pre>\n\n"
+            f"Error:\n"
+            f"<pre>{html.escape(tb_string)}</pre>"
         )
-        context.bot.send_message(
-            chat_id=FEEDBACK_CHANNEL_ID, text=message)
-    update.message.reply_text(
-        ERROR_OCCURED,
-        reply_markup=ReplyKeyboardMarkup(
-            [[START_OVER]], one_time_keyboard=True))
+        try:
+            context.bot.send_message(
+                chat_id=FEEDBACK_CHANNEL_ID, text=message, parse_mode=ParseMode.HTML)
+        except telegram.error.TelegramError as e:
+            logger.warning(msg="Can't send a message to a feedback channel.", exc_info=e)
+    if isinstance(update, Update) and update.message is not None:
+        update.message.reply_text(
+            ERROR_OCCURED,
+            reply_markup=ReplyKeyboardMarkup(
+                [[START_OVER]], one_time_keyboard=True))
 
 
 def back_choice(update: Update, context: CallbackContext) -> int:
