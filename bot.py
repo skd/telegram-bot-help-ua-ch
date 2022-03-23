@@ -79,8 +79,8 @@ def handle_error(update: object, context: CallbackContext):
         message = (
             f"An exception was raised when handling an update:\n\n"
             f"update:\n<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"
-            f"context.user_data=<pre>{json.dumps(context.user_data, indent=2, ensure_ascii=False)}</pre>\n\n"
-            f"Error: {context.error}\n"
+            f"context.user_data:\n<pre>{json.dumps(context.user_data, indent=2, ensure_ascii=False)}</pre>\n\n"
+            f"Error:\n"
             f"<pre>{html.escape(tb_string)}</pre>"
         )
         try:
