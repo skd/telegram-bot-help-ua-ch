@@ -1108,6 +1108,10 @@ node {
         label: "Центральная Швейцария (Цуг), в фейсбуке"
         url: "https://www.facebook.com/groups/344127394434549"
       }
+      url {
+        label: "Цуг"
+        url: "https://t.me/ZugUkraine"
+      }
      url {
         label: "Цюрих: t.me/zh_helps_UArefugee"
         url: "https://t.me/zh_helps_UArefugee"
@@ -1119,6 +1123,10 @@ node {
       url {
         label: "Цюрих, чат по вопросам детей"
         url: "https://t.me/Zh_helps_UA_mums"
+      }
+      url {
+        label: "Цюрих: t.me/ZurichUkraine"
+        url: "https://t.me/ZurichUkraine"
       }
       url {
         label: "Шаффхаузен: t.me/+aDgGOoiukhNhNzAy"
