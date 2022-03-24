@@ -248,13 +248,18 @@ def send_feedback(update: Update, context: CallbackContext):
     if len(context.user_data["feedback"]) == 0:
         return start(update, context)
 
-    for msg in context.user_data["feedback"]:
-        try:
+    try:
+        context.bot.send_message(
+            chat_id=FEEDBACK_CHANNEL_ID,
+            text=f"A feedback from {update.effective_user.name}",
+            parse_mode=ParseMode.HTML
+        )
+        for msg in context.user_data["feedback"]:
             msg.forward(int(FEEDBACK_CHANNEL_ID))
-        except telegram.error.TelegramError as e:
-            logger.warning(
-                "Error when trying to forward feedback to channel %s",
-                FEEDBACK_CHANNEL_ID, exc_info=e)
+    except telegram.error.TelegramError as e:
+        logger.warning(
+            "Error when trying to forward feedback to channel %s",
+            FEEDBACK_CHANNEL_ID, exc_info=e)
 
     bot_stats.collect(update.message.from_user.id, "Send Feedback")
 
