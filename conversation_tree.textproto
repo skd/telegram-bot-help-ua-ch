@@ -17,7 +17,6 @@ node {
       }
     }
   }
-  answer { text: "Если вы ищете дополнительную информацию, возможно, она доступна в @OldUAhelpCHBot" }
   link { name: "Я беженец / беженка" }
   link { name: "Я волонтер и хочу помочь" }
   link { name: "Региональные чаты в Швейцарии и Европе" }
@@ -919,7 +918,7 @@ node {
         url: "https://www.nau.ch/news/wirtschaft/sunrise-upc-gibt-ukraine-fluchtlingen-gratis-sim-karte-fur-12-monate-66138382"
       }
       url {
-        label: "Caritas: одежда и еда"
+        label: "Caritas: дешевая одежда и еда"
         url: "https://www.caritas.ch/en/finding-help/shop-and-live-inexpensively.html"
       }
       url {
