@@ -2,6 +2,7 @@ from typing import Set
 from urllib.parse import urlparse
 import google.protobuf.text_format as text_format
 import proto.conversation_pb2 as conversation_proto
+import telegram
 import os
 
 # TODO: ~43 should be the absolute maximum.
@@ -63,6 +64,9 @@ class TestConversationTree:
             assert len(node.answer) > 0, \
                 f"node['{node.name}'] must have at least one answer."
             for answer in node.answer:
+                assert answer.text is None or len(answer.text) < telegram.MAX_MESSAGE_LENGTH, \
+                    f"node['{node.name}'].text length may not exceed {telegram.MAX_MESSAGE_LENGTH} characters"
+
                 if answer.WhichOneof("answer") == "links":
                     assert len(answer.links.text) > 0, \
                         f"node['{node.name}'].answer.links must have text set."

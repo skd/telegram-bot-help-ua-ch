@@ -262,7 +262,7 @@ def redis_instance():
 
     url = urlparse(redis_url)
     use_ssl = url.scheme == 'rediss'
-    logger.info(f"Enabling Redis-based bot persistence.\nRedis URL: '{redis_url}'\nUse SSL: {use_ssl}")
+    logger.info(f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}")
     return redis.Redis(
         db=BOT_PERSISTENCE_DATABASE,
         host=url.hostname, port=url.port,

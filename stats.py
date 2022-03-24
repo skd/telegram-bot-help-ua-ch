@@ -8,7 +8,8 @@ HOUR = datetime.timedelta(hours=1).total_seconds()
 THREEHOURS = datetime.timedelta(hours=3).total_seconds()
 DAY = datetime.timedelta(days=1).total_seconds()
 BOT_TIMEZONE = timezone("Europe/Zurich")
-STARTTIME_UTC = datetime.datetime.now(BOT_TIMEZONE)
+STARTTIME_TZ = datetime.datetime.now(BOT_TIMEZONE)
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 class Stats:
     timestamp_by_user: Dict[str, float]
@@ -42,5 +43,6 @@ class Stats:
         node_stats = "\n".join([f"\t- {n}: {c}" for n, c in self.interactions.most_common(10)])
         user_stats = f"\t- 1h: {hourly}\n\t- 3h: {threehourly}\n\t- 24h: {daily}"
         now_tz = datetime.datetime.now(BOT_TIMEZONE)
-        uptime = str(now_tz - STARTTIME_UTC).split('.')[0]
-        return f"Start time: {now_tz.replace(microsecond=0)}\nUptime: {uptime}\nTotal users:\n{user_stats}\nTop 10 interactions:\n{node_stats}"
+        uptime = now_tz - STARTTIME_TZ
+        uptime = datetime.timedelta(seconds=int(uptime.total_seconds()))
+        return f"Start time: {STARTTIME_TZ.strftime(DATETIME_FORMAT)}\nUptime: {uptime}\nTotal users:\n{user_stats}\nTop 10 interactions:\n{node_stats}"
