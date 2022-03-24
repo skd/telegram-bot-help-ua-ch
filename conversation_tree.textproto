@@ -912,10 +912,6 @@ node {
         url: "https://www.caritas.ch/en/finding-help/shop-and-live-inexpensively.html"
       }
       url {
-        label: "Бесплатная одежда Tally Weijl"
-        url: "https://t.me/UASchweiz/5265"
-      }
-      url {
         label: "Цуг: Помощь"
         url: "https://t.me/c/1737223638/75"
       }
