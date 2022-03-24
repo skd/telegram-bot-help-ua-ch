@@ -35,8 +35,11 @@ an env variable `FEEDBACK_CHANNEL_ID`. Here's how you test the bot:
 
 ## Functionality wishlist
 
+- [ ] GUI editor of a conversation tree
+- [ ] Data pushes of conversation tree
 - [ ] Inline buttons. A scripter should be allowed to choose what kind of buttons to have attached. They should work same as keyboard buttons.
-- [x] Stats collection. We should collect basic stats (number of users, etc). Stats could be made accessible via a command.
+- [ ] Persistent stats collection to redis.
+- [x] Simple Stats collection. We should collect basic stats (number of users, etc). Stats could be made accessible via a command.
 - [x] Persistent sessions. Persist bot state across restarts (in an encrypted form).
 - [x] Option to collect feedback.
 - [x] Handle errors by forwarding them to a feedback channel.
