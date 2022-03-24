@@ -251,9 +251,7 @@ def send_feedback(update: Update, context: CallbackContext):
     try:
         context.bot.send_message(
             chat_id=FEEDBACK_CHANNEL_ID,
-            text=f"A feedback from {update.effective_user.name}",
-            parse_mode=ParseMode.HTML
-        )
+            text=f"A feedback from {update.effective_user.name}")
         for msg in context.user_data["feedback"]:
             msg.forward(int(FEEDBACK_CHANNEL_ID))
     except telegram.error.TelegramError as e:
