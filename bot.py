@@ -4,6 +4,7 @@ from bot_redis_persistence import RedisPersistence
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    MAX_MESSAGE_LENGTH,
     ParseMode,
     ReplyKeyboardMarkup,
     Update,
@@ -73,26 +74,34 @@ def handle_error(update: object, context: CallbackContext):
                  exc_info=context.error)
 
     if FEEDBACK_CHANNEL_ID is not None:
-        tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+        tb_list = traceback.format_exception(
+            None, context.error, context.error.__traceback__)
         tb_string = ''.join(tb_list)
         update_str = update.to_dict() if isinstance(update, Update) else str(update)
-        message = (
-            f"An exception was raised when handling an update:\n\n"
-            f"update:\n<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"
-            f"context.user_data:\n<pre>{json.dumps(context.user_data, indent=2, ensure_ascii=False)}</pre>\n\n"
-            f"Error:\n"
-            f"<pre>{html.escape(tb_string)}</pre>"
-        )
         try:
             context.bot.send_message(
-                chat_id=FEEDBACK_CHANNEL_ID, text=message, parse_mode=ParseMode.HTML)
+                chat_id=FEEDBACK_CHANNEL_ID, text="An exception was raised when handling an update:")
+            update_msg = (f"Update:\n<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+                          f"</pre>"[:MAX_MESSAGE_LENGTH])
+            context.bot.send_message(
+                chat_id=FEEDBACK_CHANNEL_ID, text=update_msg, parse_mode=ParseMode.HTML)
+            context_msg = (f"context.user_data:\n<pre>{json.dumps(context.user_data, indent=2, ensure_ascii=False)}"
+                           f"</pre>"[:MAX_MESSAGE_LENGTH])
+            context.bot.send_message(
+                chat_id=FEEDBACK_CHANNEL_ID, text=context_msg, parse_mode=ParseMode.HTML)
+            error_msg = (f"Error:\n<pre>{html.escape(tb_string)}"
+                         f"</pre>"[:MAX_MESSAGE_LENGTH])
+            context.bot.send_message(
+                chat_id=FEEDBACK_CHANNEL_ID, text=error_msg, parse_mode=ParseMode.HTML)
         except telegram.error.TelegramError as e:
-            logger.warning(msg="Can't send a message to a feedback channel.", exc_info=e)
+            logger.warning(
+                msg="Can't send a message to a feedback channel.", exc_info=e)
     if isinstance(update, Update) and update.message is not None:
         update.message.reply_text(
             ERROR_OCCURED,
             reply_markup=ReplyKeyboardMarkup(
                 [[START_OVER]], one_time_keyboard=True))
+    reset_user_state(context)
 
 
 def back_choice(update: Update, context: CallbackContext) -> int:
@@ -106,8 +115,7 @@ def back_choice(update: Update, context: CallbackContext) -> int:
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    context.user_data["current_node"] = START_NODE
-    context.user_data["nav_stack"] = [START_NODE]
+    reset_user_state(context)
     return choice(update, context)
 
 
@@ -262,7 +270,8 @@ def redis_instance():
 
     url = urlparse(redis_url)
     use_ssl = url.scheme == 'rediss'
-    logger.info(f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}")
+    logger.info(
+        f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}")
     return redis.Redis(
         db=BOT_PERSISTENCE_DATABASE,
         host=url.hostname, port=url.port,
@@ -275,7 +284,8 @@ def redis_persistence():
     encryption_key_bytes = None
     encryption_key = os.getenv("BOT_STATE_ENCRYPTION_KEY")
     if encryption_key is None:
-        logger.error("*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***")
+        logger.error(
+            "*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***")
     else:
         encryption_key_bytes = encryption_key.encode()
     rd = redis_instance()
@@ -321,6 +331,11 @@ def conversation_handler(persistent: bool):
     )
 
 
+def reset_user_state(context: CallbackContext):
+    context.user_data["current_node"] = START_NODE
+    context.user_data["nav_stack"] = [START_NODE]
+
+
 def start_bot():
     api_key = os.getenv('TELEGRAM_BOT_API_KEY')
     webhook_url = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
@@ -351,7 +366,7 @@ def start_bot():
     updater.idle()
 
 
-def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set=None):
+def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set = None):
     if visited is None:
         visited = set()
     visited.add(node.name)
@@ -389,7 +404,8 @@ def create_keyboard_options(node_by_name):
 if __name__ == "__main__":
     with open("conversation_tree.textproto", "r") as f:
         f_buffer = f.read()
-        conversation = text_format.Parse(f_buffer, conversation_proto.Conversation())
+        conversation = text_format.Parse(
+            f_buffer, conversation_proto.Conversation())
 
     CONVERSATION_DATA["node_by_name"] = create_node_by_name(conversation)
     CONVERSATION_DATA["keyboard_by_name"] = create_keyboard_options(
