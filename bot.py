@@ -258,7 +258,7 @@ def send_feedback(update: Update, context: CallbackContext):
                 update.message.text != SEND_FEEDBACK_ANONYMOUSLY:
             context.bot.send_message(
                 chat_id=FEEDBACK_CHANNEL_ID,
-                text=f"Feedback from {update.effective_user.name}")
+                text=f"Feedback from {update.effective_user.name} ({update.effective_user.id})")
         for msg in context.user_data["feedback"]:
             msg.forward(int(FEEDBACK_CHANNEL_ID))
     except telegram.error.TelegramError as e:
