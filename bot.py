@@ -48,7 +48,8 @@ PROMPT_FEEDBACK = "Пишите свой отзыв прямо тут."
 CONTINUE_FEEDBACK = "Пишите дальше, если хотите что-то добавить. " + \
     "Нажмите «Послать отзыв», если готовы послать отзыв."
 SEND_FEEDBACK = "✅ Послать отзыв"
-THANK_FOR_FEEDBACK = "Спасибо вам за отзыв!"
+SEND_FEEDBACK_ANONYMOUSLY = "🥷 Послать отзыв анонимно"
+THANK_FOR_FEEDBACK = "Спасибо вам за отзыв! 🙏"
 PROMPT_REPLY = "Выберите пункт"
 ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начать сначала."
 STATISTICS = "Статистика"
@@ -81,11 +82,13 @@ def handle_error(update: object, context: CallbackContext):
         try:
             context.bot.send_message(
                 chat_id=FEEDBACK_CHANNEL_ID, text="An exception was raised when handling an update:")
-            update_msg = (f"Update:\n<pre>{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+            update_msg = (f"Update:\n<pre>"
+                          f"{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False, default=str))}"
                           f"</pre>"[:MAX_MESSAGE_LENGTH])
             context.bot.send_message(
                 chat_id=FEEDBACK_CHANNEL_ID, text=update_msg, parse_mode=ParseMode.HTML)
-            context_msg = (f"context.user_data:\n<pre>{json.dumps(context.user_data, indent=2, ensure_ascii=False)}"
+            context_msg = (f"context.user_data:\n<pre>"
+                           f"{json.dumps(context.user_data, indent=2, ensure_ascii=False, default=str)}"
                            f"</pre>"[:MAX_MESSAGE_LENGTH])
             context.bot.send_message(
                 chat_id=FEEDBACK_CHANNEL_ID, text=context_msg, parse_mode=ParseMode.HTML)
@@ -93,7 +96,7 @@ def handle_error(update: object, context: CallbackContext):
                          f"</pre>"[:MAX_MESSAGE_LENGTH])
             context.bot.send_message(
                 chat_id=FEEDBACK_CHANNEL_ID, text=error_msg, parse_mode=ParseMode.HTML)
-        except telegram.error.TelegramError as e:
+        except Exception as e:
             logger.warning(
                 msg="Can't send a message to a feedback channel.", exc_info=e)
     if isinstance(update, Update) and update.message is not None:
@@ -233,7 +236,9 @@ def collect_feedback(update: Update, context: CallbackContext):
 
     keyboard_options = []
     if len(context.user_data["feedback"]) > 0:
-        keyboard_options.append([SEND_FEEDBACK])
+        keyboard_options.append([
+            SEND_FEEDBACK,
+            SEND_FEEDBACK_ANONYMOUSLY])
     keyboard_options.append([START_OVER])
     update.message.reply_text(
         CONTINUE_FEEDBACK,
@@ -249,9 +254,11 @@ def send_feedback(update: Update, context: CallbackContext):
         return start(update, context)
 
     try:
-        context.bot.send_message(
-            chat_id=FEEDBACK_CHANNEL_ID,
-            text=f"A feedback from {update.effective_user.name}")
+        if update.message.text is not None and \
+                update.message.text != SEND_FEEDBACK_ANONYMOUSLY:
+            context.bot.send_message(
+                chat_id=FEEDBACK_CHANNEL_ID,
+                text=f"Feedback from {update.effective_user.name}")
         for msg in context.user_data["feedback"]:
             msg.forward(int(FEEDBACK_CHANNEL_ID))
     except telegram.error.TelegramError as e:
@@ -317,7 +324,7 @@ def conversation_handler(persistent: bool):
             COLLECT_FEEDBACK: [
                 MessageHandler(
                     Filters.chat_type.private &
-                    Filters.regex(f"^{SEND_FEEDBACK}$"), send_feedback),
+                    Filters.regex(f"^{SEND_FEEDBACK}|{SEND_FEEDBACK_ANONYMOUSLY}$"), send_feedback),
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.all &
