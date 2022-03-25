@@ -780,9 +780,8 @@ node {
       }
       url {
         label: "Вакансии в общественных организациях"
-        url: "ttps://t.me/UASchweiz/7869"
+        url: "https://t.me/UASchweiz/7869"
       }
-      h
       url {
         label: "Материалы от швейцарской службы занятости"
         url: "https://t.me/UASchweiz/9839"
