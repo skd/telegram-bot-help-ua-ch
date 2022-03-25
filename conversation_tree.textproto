@@ -767,13 +767,22 @@ node {
     links {
       text: "Здесь собраны ресурсы, специализирующиеся на работе для украинцев."
       url {
-        label: "Телеграм-чат по поиску работы в Швейцарии"
+        label: "Телеграм-чат #1 по поиску работы в Швейцарии"
+        url: "https://t.me/job_sw_ukrainians"
+      }
+      url {
+        label: "Телеграм-чат #2 по поиску работы в Швейцарии"
         url: "https://t.me/workinswiss"
       }
       url {
         label: "Телеграм-чат для сотрудников бьюти-индустрии"
         url: "https://t.me/BeautySwitzerland"
       }
+      url {
+        label: "Вакансии в общественных организациях"
+        url: "ttps://t.me/UASchweiz/7869"
+      }
+      h
       url {
         label: "Материалы от швейцарской службы занятости"
         url: "https://t.me/UASchweiz/9839"
@@ -809,10 +818,6 @@ node {
       url {
         label: "CANADEM recruiting RU, UA, PL speakers"
         url: "https://reliefweb.int/job/3826886/canadem-recruiting-its-response-ukraine-russian-ukrainian-polish-speakers"
-      }
-      url {
-        label: "Impact HUB BAsel"
-        url: "https://t.me/c/1737223638/5"
       }
     }
   }
@@ -922,16 +927,24 @@ node {
         url: "https://www.caritas.ch/en/finding-help/shop-and-live-inexpensively.html"
       }
       url {
-        label: "Цуг: Помощь"
-        url: "https://t.me/c/1737223638/75"
+        label: "Цюрих: Бесплатная еда по субботам"
+        url: "https://t.me/UASchweiz/11123"
       }
       url {
-        label: "Лозанна: Помощь"
-        url: "https://t.me/c/1737223638/24"
+        label: "Цюрих: помощь и еда по понедельникам и пятницам"
+        url: "https://t.me/UASchweiz/9825"
+      }
+       url {
+        label: "Цюрих: локации с помощью и едой"
+        url: "https://t.me/UASchweiz/10393"
+      } 
+      url {
+        label: "Женева: регулярно одежда и продукты"
+        url: "https://t.me/UASchweiz/11121"
       }
       url {
-        label: "Люцерн: Секонд-хэнды и рынки"
-        url: "https://t.me/c/1737223638/18"
+        label: "ToGoodToGo: дешевая еда в конце дня"
+        url: "https://toogoodtogo.ch/de-ch"
       }
       url {
         label: "Цюрих: Бесплатная срочная(!) стоматология"
