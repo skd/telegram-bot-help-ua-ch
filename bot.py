@@ -153,7 +153,8 @@ def handle_answer(answer, update: Update):
             longitude=answer.venue.lon,
             title=answer.venue.title,
             address=answer.venue.address,
-            google_place_id=answer.venue.google_place_id)
+            google_place_id=answer.venue.google_place_id,
+            google_place_type="local_government_office")
     elif len(answer.photo) > 0:
         photob = None
         if answer.photo in PHOTO_CACHE:
