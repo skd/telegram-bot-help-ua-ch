@@ -204,6 +204,9 @@ def handle_answer(answer, update: Update):
 
 
 def choice(update: Update, context: CallbackContext) -> int:
+    if not update.message:
+        return CHOOSING
+
     user_data = context.user_data
     next_node_name = user_data["current_node"]
 
