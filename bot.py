@@ -24,9 +24,11 @@ import json
 import logging
 import os
 import proto.conversation_pb2 as conversation_proto
+import re
 import redis
 import telegram.error
 import traceback
+import urllib.request
 
 import stats
 
@@ -37,7 +39,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 bot_stats = stats.Stats()
 
+CONVERSATION_TREE_URL = "https://raw.githubusercontent.com/skd/telegram-bot-help-ua-ch/main/conversation_tree.textproto"
 DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
+API_KEY = os.getenv('TELEGRAM_BOT_API_KEY')
+FEEDBACK_CHANNEL_ID = os.getenv("FEEDBACK_CHANNEL_ID", None)
+if FEEDBACK_CHANNEL_ID is not None:
+    FEEDBACK_CHANNEL_ID = int(FEEDBACK_CHANNEL_ID)
 
 CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK = range(3)
 
@@ -55,6 +63,7 @@ ERROR_OCCURED = "Извините, произошла ошибка. Попроб
 STATISTICS = "Статистика"
 
 START_NODE = "/start"
+RELOAD = "/reload_now"
 
 ADMIN_USERS = [
     "SymbioticMe",
@@ -66,8 +75,38 @@ ADMIN_USERS = [
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
-FEEDBACK_CHANNEL_ID = None
 BOT_PERSISTENCE_DATABASE = 0
+
+
+def redis_instance():
+    redis_url = os.getenv("REDIS_TLS_URL")
+    if redis_url is None:
+        redis_url = "redis://localhost:6379"
+
+    url = urlparse(redis_url)
+    use_ssl = url.scheme == 'rediss'
+    logger.info(
+        f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}")
+    return redis.Redis(
+        db=BOT_PERSISTENCE_DATABASE,
+        host=url.hostname, port=url.port,
+        username=url.username, password=url.password,
+        ssl=use_ssl, ssl_cert_reqs=None,
+    )
+
+
+def redis_persistence():
+    encryption_key_bytes = None
+    encryption_key = os.getenv("BOT_STATE_ENCRYPTION_KEY")
+    if encryption_key is None:
+        logger.error(
+            "*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***")
+    else:
+        encryption_key_bytes = encryption_key.encode()
+    rd = redis_instance()
+    return RedisPersistence(rd, encryption_key_bytes)
+
+persistence = redis_persistence() if os.getenv("PERSIST_SESSIONS", '') == 'true' else None
 
 
 def handle_error(update: object, context: CallbackContext):
@@ -183,7 +222,15 @@ def choice(update: Update, context: CallbackContext) -> int:
     user_id = update.message.from_user.id
     bot_stats.collect(user_id, next_node_name)
 
-    current_node = CONVERSATION_DATA["node_by_name"][next_node_name]
+    current_node = CONVERSATION_DATA["node_by_name"].get(next_node_name)
+    if not current_node:
+        current_keyboard = ReplyKeyboardMarkup(
+            [[START_OVER]], one_time_keyboard=True)
+        update.message.reply_text(
+            "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало.",
+            reply_markup=current_keyboard)
+        return CHOOSING
+
     current_keyboard_options = [
         *CONVERSATION_DATA["keyboard_by_name"][current_node_name]]
     if len(user_data["nav_stack"]) > 1:
@@ -273,35 +320,6 @@ def send_feedback(update: Update, context: CallbackContext):
     return start(update, context)
 
 
-def redis_instance():
-    redis_url = os.getenv("REDIS_TLS_URL")
-    if redis_url is None:
-        redis_url = "redis://localhost:6379"
-
-    url = urlparse(redis_url)
-    use_ssl = url.scheme == 'rediss'
-    logger.info(
-        f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}")
-    return redis.Redis(
-        db=BOT_PERSISTENCE_DATABASE,
-        host=url.hostname, port=url.port,
-        username=url.username, password=url.password,
-        ssl=use_ssl, ssl_cert_reqs=None,
-    )
-
-
-def redis_persistence():
-    encryption_key_bytes = None
-    encryption_key = os.getenv("BOT_STATE_ENCRYPTION_KEY")
-    if encryption_key is None:
-        logger.error(
-            "*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***")
-    else:
-        encryption_key_bytes = encryption_key.encode()
-    rd = redis_instance()
-    return RedisPersistence(rd, encryption_key_bytes)
-
-
 def conversation_handler(persistent: bool):
     return ConversationHandler(
         entry_points=[MessageHandler(
@@ -317,6 +335,9 @@ def conversation_handler(persistent: bool):
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.regex(f"^{STATISTICS}$"), show_stats),
+                MessageHandler(
+                    Filters.chat_type.private &
+                    Filters.regex(f"^{RELOAD}$"), reload_conversation),
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.text & ~Filters.regex(f"^{START_OVER}$"), choice),
@@ -347,18 +368,10 @@ def reset_user_state(context: CallbackContext):
 
 
 def start_bot():
-    api_key = os.getenv('TELEGRAM_BOT_API_KEY')
-    webhook_url = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
-
-    persistence = None
-    persist_sessions = os.getenv("PERSIST_SESSIONS", '') == 'true'
-    if persist_sessions:
-        persistence = redis_persistence()
-
-    updater = Updater(token=api_key, persistence=persistence, use_context=True)
+    updater = Updater(token=API_KEY, persistence=persistence, use_context=True)
     dispatcher = updater.dispatcher
 
-    dispatcher.add_handler(conversation_handler(persist_sessions))
+    dispatcher.add_handler(conversation_handler(persistence is not None))
     dispatcher.add_error_handler(handle_error)
 
     if os.getenv("USE_WEBHOOK", "") == "true":
@@ -367,8 +380,8 @@ def start_bot():
         updater.start_webhook(
             listen="0.0.0.0",
             port=int(port),
-            url_path=api_key,
-            webhook_url=f"{webhook_url}/{api_key}",
+            url_path=API_KEY,
+            webhook_url=f"{WEBHOOK_URL}/{API_KEY}",
         )
     else:
         updater.start_polling()
@@ -411,18 +424,50 @@ def create_keyboard_options(node_by_name):
     return keyboard_by_name
 
 
-if __name__ == "__main__":
+def reload_conversation(update: Update, context: CallbackContext) -> int:
+    username = update.message.from_user.username
+    if username in ADMIN_USERS:
+        logger.info(f"Reloading conversation from {CONVERSATION_TREE_URL}")
+        try:
+            convo_buffer = None
+            with urllib.request.urlopen(CONVERSATION_TREE_URL) as f:
+                convo_buffer = f.read().decode("utf-8")
+            reset_bot_data(convo_buffer, update)
+            bot_stats.conversation_reloaded(username)
+            logger.info(f"Conversation reload successful ({username})")
+        except urllib.error.URLError as e:
+            logger.error("Failed to reload conversation from GitHub", exc_info=e)
+            update.message.reply_text(
+                f"Ошибка загрузки диалога:\n{e}",
+                reply_markup=ReplyKeyboardMarkup(
+                    [[START_OVER]], one_time_keyboard=True))
+            start(update, context)
+
+    return CHOOSING
+
+
+def reset_bot_data(conversation_textproto: str, update: Update=None):
+    global CONVERSATION_DATA
+    conversation = text_format.Parse(
+        conversation_textproto, conversation_proto.Conversation())
+
+    # Avoid bringing CONVERSATION_DATA into an inconsistent state.
+    new_conversation_data = {}
+    new_conversation_data["node_by_name"] = create_node_by_name(conversation)
+    new_conversation_data["keyboard_by_name"] = create_keyboard_options(
+        new_conversation_data["node_by_name"])
+    CONVERSATION_DATA = new_conversation_data
+    if update:
+        update.message.reply_text("Диалог успешно перезагружен.")
+
+
+def main():
+    f_buffer = None
     with open("conversation_tree.textproto", "r") as f:
         f_buffer = f.read()
-        conversation = text_format.Parse(
-            f_buffer, conversation_proto.Conversation())
-
-    CONVERSATION_DATA["node_by_name"] = create_node_by_name(conversation)
-    CONVERSATION_DATA["keyboard_by_name"] = create_keyboard_options(
-        CONVERSATION_DATA["node_by_name"])
-
-    FEEDBACK_CHANNEL_ID = os.getenv("FEEDBACK_CHANNEL_ID", None)
-    if FEEDBACK_CHANNEL_ID is not None:
-        FEEDBACK_CHANNEL_ID = int(FEEDBACK_CHANNEL_ID)
-
+    reset_bot_data(f_buffer)
     start_bot()
+
+
+if __name__ == "__main__":
+    main()

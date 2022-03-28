@@ -12,7 +12,7 @@ $ pip3 install -r requirements.txt
 `conversation.proto` is a schema for the data model. It tells how you should write the data model.
 The data model is in `conversation_tree.textproto`
 
-Before commiting, run `python3 -m pytest` to ensure you did not introduce any problems.
+Before committing, run `python3 -m pytest` to ensure you did not introduce any problems.
 
 ### Testing your bot
 
@@ -36,7 +36,7 @@ an env variable `FEEDBACK_CHANNEL_ID`. Here's how you test the bot:
 ## Functionality wishlist
 
 - [ ] GUI editor of a conversation tree
-- [ ] Data pushes of conversation tree
+- [X] Data pulls of conversation tree from GitHub on command
 - [ ] Inline buttons. A scripter should be allowed to choose what kind of buttons to have attached. They should work same as keyboard buttons.
 - [ ] Persistent stats collection to redis.
 - [x] Simple Stats collection. We should collect basic stats (number of users, etc). Stats could be made accessible via a command.
