@@ -34,6 +34,7 @@ node {
   link { name: "🚃 Транспорт" }
   link { name: "🧑‍🎓 Образование" }
   link { name: "🦮 Животные" }
+  link { name: "☎ Связь" }
   link { name: "🇩🇪 🇫🇷 Изучение языка 🇬🇧" }
 }
 
@@ -952,16 +953,12 @@ node {
     links {
       text:
         "С момента получения пермита S вы получаете право на бесплатное медицинское страхование, бесплатный общественный "
-        "транспорт в пределах Швейцарии и звонки в Украину."
+        "транспорт в пределах Швейцарии (до 31 мая включительно) и звонки в Украину."
         "Многие организации предоставляют льготы или бесплатную помощь беженцам с Украины. Следите в местными каналах за "
         "объявлениями о конкретных акциях. Здесь мы собрали некоторые ссылки о постоянных акциях помощи, а также несколько ресурсов с перепродажей б/у товаров, где можно найти многие вещи (от чайника до автомобиля) с большими скидками или даже бесплатно (gratis)."
       url {
-        label: "Бесплатная мобильная связь (Swisscom)"
-        url: "https://www.swisscom.ch/de/privatkunden/ukraine-ukr.html"
-      }
-      url {
-        label: "Бесплатная мобильная связь (Sunrise)"
-        url: "https://www.nau.ch/news/wirtschaft/sunrise-upc-gibt-ukraine-fluchtlingen-gratis-sim-karte-fur-12-monate-66138382"
+        label: "Чат с информацией по бесплатной стоматологии"
+        url: "https://t.me/stomatologch"
       }
       url {
         label: "Caritas: дешевая одежда и еда"
@@ -992,8 +989,8 @@ node {
         url: "https://t.me/UASchweiz/8602"
       }
       url {
-        label: "Ricardo.ch, онлайн аукцион"
-        url: "https://www.ricardo.ch/"
+        label: "Anibis.ch, доска объявлений"
+        url: "https://www.Anibis.ch/"
       }
       url {
         label: "Tutti.ch, доска объявлений"
@@ -1002,6 +999,29 @@ node {
     }
   }
 }
+
+node {
+  name: "☎ Связь"
+  answer {
+    links {
+      text:
+        "Здесь мы собрали информацию по средствам коммуникации."
+      url {
+        label: "Бесплатная мобильная связь (Swisscom)"
+        url: "https://www.swisscom.ch/de/privatkunden/ukraine-ukr.html"
+      }
+      url {
+        label: "Бесплатная мобильная связь (Sunrise)"
+        url: "https://www.nau.ch/news/wirtschaft/sunrise-upc-gibt-ukraine-fluchtlingen-gratis-sim-karte-fur-12-monate-66138382"
+      }
+      url {
+        label: "Дешевый интернет (Digital Republic)"
+        url: "https://digitalrepublic.ch/de/?utm_source=google&utm_medium=cpc&utm_campaign=1735554222&utm_content=71930932510&utm_term=digital%20republic&gclid=CjwKCAjwuYWSBhByEiwAKd_n_jS_B0Q3zkMp5NEBa--bbuf5Oa1WQj_vdQN4FRh0sHHHe1ob2QTRExoCJwYQAvD_BwE"
+      }
+    }
+  }
+}
+
 
 node {
   name: "🚃 Транспорт"
@@ -1013,6 +1033,7 @@ node {
         "Если выписали штраф — звонить 084800113 понедельник-пятница с 8 до 17.\n\n"
         "Ношение маски c общественном транспорте обязательно!\n"
         "Помимо этого для украинских беженцев действуют следующие льготы:\n"
+        "▪ Бесплатные поезда до Швейцарии из Польши и Германии — обязательно берите в кассе бесплатный билет.\n"
         "▪ Бесплатный проезд в общественном транспорте по всей Швейцарии до 31 мая, после регистрации на статус «S».\n"
         "▪ Автотранспорт, перевозящий беженцев или гуманитарную помощь, может двигаться по автобану без покупки виньетки до 30 июня.\n"
         "▪ Бесплатная парковка в голубой зоне при получении соответствующего разрешения.\n\n"
@@ -1083,8 +1104,12 @@ node {
         url: "https://www.uzh.ch/cmsssl/en/about/global/solidarity-with-ukraine.html"
       }
       url {
-        label: "ZHdK"
+        label: "ZHdK — Цюрихский университет искусств"
         url: "https://www.zhdk.ch/en/news/the-current-events-in-ukraine-4992.html"
+      }
+      url {
+        label: "ZHAW — Цюрихский университет прикладных наук"
+        url: "https://www.zhaw.ch/en/about-us/news/ukraine/"
       }
       url {
         label: "EPFL"
@@ -1111,11 +1136,11 @@ node {
     links {
       text: "Почти все регионы Швейцарии имеют свои собственные чаты:"
       url {
-        label: "Ааргау: t.me/AargauUkraine"
+        label: "Ааргау: AargauUkraine"
         url: "https://t.me/AargauUkraine"
       }
       url {
-        label: "Базель: t.me/BaselUkraine"
+        label: "Базель: BaselUkraine"
         url: "https://t.me/BaselUkraine"
       }
       url {
@@ -1127,16 +1152,20 @@ node {
         url: "https://t.me/help_people_fromUkraine"
       }
       url {
-        label: "Вале (Валлис): /ValaisUkraine"
+        label: "Вале (Валлис): ValaisUkraine"
         url: "https://t.me/ValaisUkraine"
       }
       url {
-        label: "Во (Лозанна): /LousanneUkraine"
+        label: "Во (Лозанна): LousanneUkraine"
         url: "https://t.me/LousanneUkraine"
       }
       url {
-        label: "Во (Лозанна), группа в фейсбуке"
+        label: "Во (Лозанна): группа в фейсбуке"
         url: "https://www.facebook.com/groups/3223556504546235/?ref=share"
+      }
+      url {
+        label: "Золотурн: SolothurnUkraine"
+        url: "https://t.me/SolothurnUkraine"
       }
       url {
         label: "Женева и Во: GeneveUkraine"
@@ -1151,67 +1180,71 @@ node {
         url: "https://chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
       }
       url {
-        label: "Люцерн: t.me/LuzernUkraine"
+        label: "Люцерн: LuzernUkraine"
         url: "https://t.me/LuzernUkraine"
       }
       url {
-        label: "Люцерн: t.me/LuzernUAHilfe"
+        label: "Люцерн: LuzernUAHilfe"
         url: "https://t.me/LuzernUAHilfe"
       }
       url {
-        label: "Невшатель: t.me/westandwithukraina"
+        label: "Невшатель: westandwithukraina"
         url: "https://t.me/westandwithukraina"
       }
       url {
-        label: "Санкт-Галлен: t.me/StGallenUkraine"
+        label: "Санкт-Галлен: StGallenUkraine"
         url: "https://t.me/StGallenUkraine"
       }
       url {
-        label: "Тичино: t.me/TicinoLuganoUkraine"
+        label: "Санкт-Галлен: sg_helps"
+        url: "https://t.me/sg_helps"
+      }
+      url {
+        label: "Тичино: TicinoLuganoUkraine"
         url: "https://t.me/TicinoLuganoUkraine"
       }
       url {
-        label: "Тургау: t.me/ThurgauUkraine"
+        label: "Тургау: ThurgauUkraine"
         url: "https://t.me/ThurgauUkraine"
       }
       url {
-        label: "Фрибур: t.me/+h5QVWdAJof5jY2My"
+        label: "Фрибур: +h5QVWdAJof5jY2My"
         url: "https://t.me/+h5QVWdAJof5jY2My"
       }
       url {
-        label: "Центральная Швейцария (Цуг, Telegram)"
+        label: "Центральная Швейцария (Цуг): +q894LAg3kQ1hNjRk"
         url: "https://t.me/+q894LAg3kQ1hNjRk"
       }
       url {
-        label: "Центральная Швейцария (Цуг), в фейсбуке"
+        label: "Центральная Швейцария (Цуг): группа в фейсбуке"
         url: "https://www.facebook.com/groups/344127394434549"
       }
       url {
-        label: "Цуг"
+        label: "Цуг: ZugUkraine"
         url: "https://t.me/ZugUkraine"
       }
       url {
-        label: "Цюрих: t.me/zh_helps_UArefugee"
+        label: "Цюрих: zh_helps_UArefugee"
         url: "https://t.me/zh_helps_UArefugee"
       }
       url {
-        label: "Цюрих: t.me/zh_helps_ukraine"
+        label: "Цюрих: zh_helps_ukraine"
         url: "https://t.me/zh_helps_ukraine"
       }
       url {
-        label: "Цюрих, чат по вопросам детей"
+        label: "Цюрих: чат по вопросам детей"
         url: "https://t.me/Zh_helps_UA_mums"
       }
       url {
-        label: "Цюрих: t.me/ZurichUkraine"
+        label: "Цюрих: ZurichUkraine"
         url: "https://t.me/ZurichUkraine"
       }
       url {
-        label: "Шаффхаузен: t.me/+aDgGOoiukhNhNzAy"
+        label: "Шаффхаузен: +aDgGOoiukhNhNzAy"
         url: "https://t.me/+aDgGOoiukhNhNzAy"
       }
       url {
-        label: "Шаффхаузен, сайт с официальной информацией"
+        label: "Шаффхаузен: сайт с официальной информацией"
         url: "https://sh.ch/CMS/Webseite/Kanton-Schaffhausen/Beh-rde/Verwaltung/Departement-des-Innern/Migrationsamt-und-Passb-ro/Ukraine--Kantonale-Anlaufstelle-10250559-DE.html"
       }
     }
@@ -1222,14 +1255,26 @@ node {
   name: "Региональные чаты в Европе"
   answer {
     links {
-      text: "Региональные чаты в Европе"
+      text: "Региональные чаты в Европе. Если чего-то не нашли, попробуйте посмотреть в полном списке (первая ссылка)."
       url {
-        label: "Помощь украинцам в Дании 🇩🇰"
-        url: "https://t.me/refugeesinDenmark"
+        label: "Полный список"
+        url: "https://t.me/UASchweiz/13076"
+      }
+       url {
+        label: "Общий канал по ЕС 🇪🇺"
+        url: "https://t.me/ukr_emigration"
+      }
+      url {
+        label: "Помощь украинцам в Австрии 🇦🇹"
+        url: "https://t.me/refugeesinAustria"
       }
       url {
         label: "Помощь украинцам в Бельгии 🇧🇪"
         url: "https://t.me/refugeesinBelgium"
+      }
+      url {
+        label: "Помощь украинцам в Дании 🇩🇰"
+        url: "https://t.me/refugeesinDenmark"
       }
       url {
         label: "Помощь украинцам в Польше 🇵🇱"
@@ -1250,10 +1295,6 @@ node {
       url {
         label: "Помощь украинцам в Швеции 🇸🇪"
         url: "https://t.me/refugeesinSweden"
-      }
-      url {
-        label: "Помощь украинцам в Австрии 🇦🇹"
-        url: "https://t.me/refugeesinAustria"
       }
     }
   }
