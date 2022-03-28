@@ -1005,7 +1005,7 @@ node {
   answer {
     links {
       text:
-        "Здесь мыс собрали информацию по средствам коммуникации."
+        "Здесь мы собрали информацию по средствам коммуникации."
       url {
         label: "Бесплатная мобильная связь (Swisscom)"
         url: "https://www.swisscom.ch/de/privatkunden/ukraine-ukr.html"
