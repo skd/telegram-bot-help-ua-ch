@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from collections import deque
 from bot_redis_persistence import RedisPersistence
 from telegram import (
     InlineKeyboardButton,
@@ -24,8 +25,8 @@ import json
 import logging
 import os
 import proto.conversation_pb2 as conversation_proto
-import re
 import redis
+import ssl
 import telegram.error
 import traceback
 import urllib.request
@@ -47,7 +48,7 @@ FEEDBACK_CHANNEL_ID = os.getenv("FEEDBACK_CHANNEL_ID", None)
 if FEEDBACK_CHANNEL_ID is not None:
     FEEDBACK_CHANNEL_ID = int(FEEDBACK_CHANNEL_ID)
 
-CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK = range(3)
+CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK, ADMIN_MENU = range(4)
 
 BACK = "Назад"
 START_OVER = "Вернуться в начало"
@@ -61,9 +62,12 @@ THANK_FOR_FEEDBACK = "Спасибо вам за отзыв! 🙏"
 PROMPT_REPLY = "Выберите пункт"
 ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начать сначала."
 STATISTICS = "Статистика"
+ADMIN = "Админ"
+ADMIN_PROMPT = "Давно не виделись! Как поживаете?"
+RELOAD = "Обновить данные разговора"
 
 START_NODE = "/start"
-RELOAD = "/reload_now"
+
 
 ADMIN_USERS = [
     "SymbioticMe",
@@ -106,7 +110,9 @@ def redis_persistence():
     rd = redis_instance()
     return RedisPersistence(rd, encryption_key_bytes)
 
-persistence = redis_persistence() if os.getenv("PERSIST_SESSIONS", '') == 'true' else None
+
+persistence = redis_persistence() if os.getenv(
+    "PERSIST_SESSIONS", '') == 'true' else None
 
 
 def handle_error(update: object, context: CallbackContext):
@@ -161,15 +167,70 @@ def start(update: Update, context: CallbackContext) -> int:
     return choice(update, context)
 
 
-def show_stats(update: Update, context: CallbackContext) -> int:
-    keyboard_opts = [[START_OVER]]
-    if update.message.from_user.username in ADMIN_USERS:
-        update.message.reply_text(
-            bot_stats.compute(), parse_mode=ParseMode.HTML,
-            reply_markup=ReplyKeyboardMarkup(keyboard_opts),
-        )
+def show_admin_menu(update: Update, context: CallbackContext) -> int:
+    if update.message.from_user.username not in ADMIN_USERS:
+        return start(update, context)
+    keyboard_opts = [
+        [RELOAD],
+        [STATISTICS],
+        [START_OVER],
+    ]
+    update.message.reply_text(
+        ADMIN_PROMPT, parse_mode=ParseMode.HTML,
+        reply_markup=ReplyKeyboardMarkup(keyboard_opts))
+    return ADMIN_MENU
 
-    return CHOOSING
+
+def show_stats(update: Update, context: CallbackContext) -> int:
+    if update.message.from_user.username not in ADMIN_USERS:
+        return start(update, context)
+    keyboard_opts = [[START_OVER]]
+    update.message.reply_text(
+        bot_stats.compute(), parse_mode=ParseMode.HTML,
+        reply_markup=ReplyKeyboardMarkup(keyboard_opts))
+
+    return show_admin_menu(update, context)
+
+
+def reload_conversation(update: Update, context: CallbackContext) -> int:
+    username = update.message.from_user.username
+    if username not in ADMIN_USERS:
+        return start(update, context)
+
+    logger.info(f"Reloading conversation from {CONVERSATION_TREE_URL}")
+    try:
+        convo_buffer = None
+        with urllib.request.urlopen(CONVERSATION_TREE_URL,
+                                    context=ssl.create_default_context()) as f:
+            convo_buffer = f.read().decode("utf-8")
+        reset_bot_data(convo_buffer, update)
+        bot_stats.conversation_reloaded(username)
+        logger.info(f"Conversation reload successful ({username})")
+    except urllib.error.URLError as e:
+        logger.error(
+            "Failed to reload conversation from GitHub", exc_info=e)
+        update.message.reply_text(
+            f"Ошибка загрузки диалога:\n{e}",
+            reply_markup=ReplyKeyboardMarkup(
+                [[START_OVER]], one_time_keyboard=True))
+        start(update, context)
+
+    return show_admin_menu(update, context)
+
+
+def reset_bot_data(conversation_textproto: str, update: Update = None):
+    global CONVERSATION_DATA
+    conversation = text_format.Parse(
+        conversation_textproto, conversation_proto.Conversation())
+
+    # Avoid bringing CONVERSATION_DATA into an inconsistent state.
+    new_conversation_data = {}
+    new_conversation_data["node_by_name"] = create_node_by_name(conversation)
+    new_conversation_data["keyboard_by_name"] = create_keyboard_options(
+        new_conversation_data["node_by_name"])
+    CONVERSATION_DATA = new_conversation_data
+    if update:
+        update.message.reply_text("Диалог успешно перезагружен.")
 
 
 def handle_answer(answer, update: Update):
@@ -231,8 +292,9 @@ def choice(update: Update, context: CallbackContext) -> int:
             reply_markup=current_keyboard)
         return CHOOSING
 
-    current_keyboard_options = [
-        *CONVERSATION_DATA["keyboard_by_name"][current_node_name]]
+    current_keyboard_options = deque()
+    current_keyboard_options.extend(
+        CONVERSATION_DATA["keyboard_by_name"][current_node_name])
     if len(user_data["nav_stack"]) > 1:
         current_keyboard_options.append([BACK])
     if next_node_name != START_NODE:
@@ -241,7 +303,7 @@ def choice(update: Update, context: CallbackContext) -> int:
         if FEEDBACK_CHANNEL_ID is not None:
             current_keyboard_options.append([FEEDBACK])
         if update.message.from_user.username in ADMIN_USERS:
-            current_keyboard_options.append([STATISTICS])
+            current_keyboard_options.appendleft([ADMIN])
 
     current_keyboard = ReplyKeyboardMarkup(
         current_keyboard_options, one_time_keyboard=True)
@@ -334,10 +396,7 @@ def conversation_handler(persistent: bool):
                     Filters.regex(f"^{FEEDBACK}$"), start_feedback),
                 MessageHandler(
                     Filters.chat_type.private &
-                    Filters.regex(f"^{STATISTICS}$"), show_stats),
-                MessageHandler(
-                    Filters.chat_type.private &
-                    Filters.regex(f"^{RELOAD}$"), reload_conversation),
+                    Filters.regex(f"^{ADMIN}$"), show_admin_menu),
                 MessageHandler(
                     Filters.chat_type.private &
                     Filters.text & ~Filters.regex(f"^{START_OVER}$"), choice),
@@ -350,7 +409,15 @@ def conversation_handler(persistent: bool):
                     Filters.chat_type.private &
                     Filters.all &
                     ~Filters.regex(f"^{START_OVER}$"), collect_feedback),
-            ]
+            ],
+            ADMIN_MENU: [
+                MessageHandler(
+                    Filters.chat_type.private &
+                    Filters.regex(f"^{STATISTICS}$"), show_stats),
+                MessageHandler(
+                    Filters.chat_type.private &
+                    Filters.regex(f"^{RELOAD}$"), reload_conversation),
+            ],
         },
         fallbacks=[
             MessageHandler(
@@ -422,43 +489,6 @@ def create_keyboard_options(node_by_name):
                     options.append([link.branch.name])
             keyboard_by_name[name] = options
     return keyboard_by_name
-
-
-def reload_conversation(update: Update, context: CallbackContext) -> int:
-    username = update.message.from_user.username
-    if username in ADMIN_USERS:
-        logger.info(f"Reloading conversation from {CONVERSATION_TREE_URL}")
-        try:
-            convo_buffer = None
-            with urllib.request.urlopen(CONVERSATION_TREE_URL) as f:
-                convo_buffer = f.read().decode("utf-8")
-            reset_bot_data(convo_buffer, update)
-            bot_stats.conversation_reloaded(username)
-            logger.info(f"Conversation reload successful ({username})")
-        except urllib.error.URLError as e:
-            logger.error("Failed to reload conversation from GitHub", exc_info=e)
-            update.message.reply_text(
-                f"Ошибка загрузки диалога:\n{e}",
-                reply_markup=ReplyKeyboardMarkup(
-                    [[START_OVER]], one_time_keyboard=True))
-            start(update, context)
-
-    return CHOOSING
-
-
-def reset_bot_data(conversation_textproto: str, update: Update=None):
-    global CONVERSATION_DATA
-    conversation = text_format.Parse(
-        conversation_textproto, conversation_proto.Conversation())
-
-    # Avoid bringing CONVERSATION_DATA into an inconsistent state.
-    new_conversation_data = {}
-    new_conversation_data["node_by_name"] = create_node_by_name(conversation)
-    new_conversation_data["keyboard_by_name"] = create_keyboard_options(
-        new_conversation_data["node_by_name"])
-    CONVERSATION_DATA = new_conversation_data
-    if update:
-        update.message.reply_text("Диалог успешно перезагружен.")
 
 
 def main():
