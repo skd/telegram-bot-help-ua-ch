@@ -18,7 +18,6 @@ from telegram.ext import (
 )
 from typing import Set
 from urllib.parse import urlparse
-import asyncio
 import google.protobuf.text_format as text_format
 import html
 import json
@@ -27,9 +26,7 @@ import os
 import proto.conversation_pb2 as conversation_proto
 import re
 import redis
-import signal
 import telegram.error
-import threading
 import traceback
 import urllib.request
 
@@ -41,9 +38,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 bot_stats = stats.Stats()
-updater: Updater = None
-updater_lock = threading.Lock()
-exit_event = threading.Event()
 
 CONVERSATION_TREE_URL = "https://raw.githubusercontent.com/skd/telegram-bot-help-ua-ch/main/conversation_tree.textproto"
 DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
@@ -70,7 +64,6 @@ STATISTICS = "Статистика"
 
 START_NODE = "/start"
 RELOAD = "/reload_now"
-RELOAD_SIGNAL = signal.SIGABRT
 
 ADMIN_USERS = [
     "SymbioticMe",
@@ -374,39 +367,26 @@ def reset_user_state(context: CallbackContext):
     context.user_data["nav_stack"] = [START_NODE]
 
 
-async def start_bot():
-    global updater
+def start_bot():
+    updater = Updater(token=API_KEY, persistence=persistence, use_context=True)
+    dispatcher = updater.dispatcher
 
-    while not exit_event.is_set():
-        updater_lock.acquire()
-        logger.info("Creating new updater")
-        updater = Updater(token=API_KEY, persistence=persistence, use_context=True, user_sig_handler=sig_handler)
-        dispatcher = updater.dispatcher
+    dispatcher.add_handler(conversation_handler(persistence is not None))
+    dispatcher.add_error_handler(handle_error)
 
-        dispatcher.add_handler(conversation_handler(persistence is not None))
-        dispatcher.add_error_handler(handle_error)
+    if os.getenv("USE_WEBHOOK", "") == "true":
+        port = int(os.environ.get("PORT", 5000))
+        logger.log(logging.INFO, "Starting webhook at port %s", port)
+        updater.start_webhook(
+            listen="0.0.0.0",
+            port=int(port),
+            url_path=API_KEY,
+            webhook_url=f"{WEBHOOK_URL}/{API_KEY}",
+        )
+    else:
+        updater.start_polling()
 
-        if os.getenv("USE_WEBHOOK", "") == "true":
-            port = int(os.environ.get("PORT", 5000))
-            logger.log(logging.INFO, "Starting webhook at port %s", port)
-            updater.start_webhook(
-                listen="0.0.0.0",
-                port=int(port),
-                url_path=API_KEY,
-                webhook_url=f"{WEBHOOK_URL}/{API_KEY}",
-            )
-        else:
-            updater.start_polling()
-
-        httpd = updater.httpd
-        updater.idle()
-        if httpd:
-            # A hack to have the underlying Tornado webserver stop listening on the open port.
-            # python-telegram-bot should have done this but it is not asyncio-based (v13) and
-            # does not support async/await required for the close_all_connections() call.
-            httpd.http_server.stop()
-            await httpd.http_server.close_all_connections()
-        logger.info("Updater stopped")
+    updater.idle()
 
 
 def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set = None):
@@ -448,14 +428,13 @@ def reload_conversation(update: Update, context: CallbackContext) -> int:
     username = update.message.from_user.username
     if username in ADMIN_USERS:
         logger.info(f"Reloading conversation from {CONVERSATION_TREE_URL}")
-        convo_buffer = None
         try:
+            convo_buffer = None
             with urllib.request.urlopen(CONVERSATION_TREE_URL) as f:
                 convo_buffer = f.read().decode("utf-8")
             reset_bot_data(convo_buffer, update)
             bot_stats.conversation_reloaded(username)
-            logger.info(f"Reload successful, killing updater")
-            os.kill(os.getpid(), RELOAD_SIGNAL)
+            logger.info(f"Conversation reload successful ({username})")
         except urllib.error.URLError as e:
             logger.error("Failed to reload conversation from GitHub", exc_info=e)
             update.message.reply_text(
@@ -468,29 +447,27 @@ def reload_conversation(update: Update, context: CallbackContext) -> int:
 
 
 def reset_bot_data(conversation_textproto: str, update: Update=None):
+    global CONVERSATION_DATA
     conversation = text_format.Parse(
         conversation_textproto, conversation_proto.Conversation())
-    CONVERSATION_DATA["node_by_name"] = create_node_by_name(conversation)
-    CONVERSATION_DATA["keyboard_by_name"] = create_keyboard_options(
-        CONVERSATION_DATA["node_by_name"])
+
+    # Avoid bringing CONVERSATION_DATA into an inconsistent state.
+    new_conversation_data = {}
+    new_conversation_data["node_by_name"] = create_node_by_name(conversation)
+    new_conversation_data["keyboard_by_name"] = create_keyboard_options(
+        new_conversation_data["node_by_name"])
+    CONVERSATION_DATA = new_conversation_data
     if update:
-        update.message.reply_text(
-            "Диалог успешно перезагружен, бот перезапускается...")
+        update.message.reply_text("Диалог успешно перезагружен.")
 
 
-def sig_handler(sig, stack):
-    if sig != RELOAD_SIGNAL:
-        exit_event.set()
-    updater_lock.release()
-
-
-async def main():
+def main():
     f_buffer = None
     with open("conversation_tree.textproto", "r") as f:
         f_buffer = f.read()
     reset_bot_data(f_buffer)
-    await start_bot()
+    start_bot()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
