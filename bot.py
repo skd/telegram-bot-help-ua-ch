@@ -6,9 +6,11 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     MAX_MESSAGE_LENGTH,
+    MessageEntity,
     ParseMode,
     ReplyKeyboardMarkup,
     Update,
+    User,
 )
 from telegram.ext import (
     CallbackContext,
@@ -368,9 +370,19 @@ def send_feedback(update: Update, context: CallbackContext):
     try:
         if update.message.text is not None and \
                 update.message.text != SEND_FEEDBACK_ANONYMOUSLY:
+            effective_user_name = update.effective_user.name
+            text = f"Feedback from {effective_user_name}"
             context.bot.send_message(
                 chat_id=FEEDBACK_CHANNEL_ID,
-                text=f"Feedback from {update.effective_user.name} ({update.effective_user.id})")
+                text=text,
+                entities = [MessageEntity(
+                    offset=0,
+                    length=len(text),
+                    type="text_mention",
+                    user=User(
+                        update.effective_user.id,
+                        effective_user_name,
+                        False))])
         for msg in context.user_data["feedback"]:
             msg.forward(int(FEEDBACK_CHANNEL_ID))
     except telegram.error.TelegramError as e:
