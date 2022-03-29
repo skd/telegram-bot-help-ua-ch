@@ -32,7 +32,6 @@ import ssl
 import telegram.error
 import traceback
 import urllib.request
-
 import stats
 
 logging.basicConfig(
@@ -40,7 +39,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
-bot_stats = stats.Stats()
+bot_stats: stats.Stats = None
 
 CONVERSATION_TREE_URL = "https://raw.githubusercontent.com/skd/telegram-bot-help-ua-ch/main/conversation_tree.textproto"
 DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
@@ -81,20 +80,19 @@ ADMIN_USERS = [
 
 CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
-BOT_PERSISTENCE_DATABASE = 0
+FEEDBACK_CHANNEL_ID = None
+BOT_PERSISTENCE_DATABASE, BOT_METRICS_DATABASE = range(2)
 
 
-def redis_instance():
-    redis_url = os.getenv("REDIS_TLS_URL")
-    if redis_url is None:
-        redis_url = "redis://localhost:6379"
+def redis_instance(redis_db: int):
+    redis_url = os.getenv("REDIS_TLS_URL", "redis://localhost:6379")
 
     url = urlparse(redis_url)
     use_ssl = url.scheme == 'rediss'
     logger.info(
         f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}")
     return redis.Redis(
-        db=BOT_PERSISTENCE_DATABASE,
+        db=redis_db,
         host=url.hostname, port=url.port,
         username=url.username, password=url.password,
         ssl=use_ssl, ssl_cert_reqs=None,
@@ -109,7 +107,7 @@ def redis_persistence():
             "*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***")
     else:
         encryption_key_bytes = encryption_key.encode()
-    rd = redis_instance()
+    rd = redis_instance(BOT_PERSISTENCE_DATABASE)
     return RedisPersistence(rd, encryption_key_bytes)
 
 
@@ -286,7 +284,7 @@ def choice(update: Update, context: CallbackContext) -> int:
 
     current_node_name = user_data["current_node"]
     user_id = update.message.from_user.id
-    bot_stats.collect(user_id, next_node_name)
+    bot_stats.collect_interaction(user_id, next_node_name)
 
     current_node = CONVERSATION_DATA["node_by_name"].get(next_node_name)
     if not current_node:
@@ -444,6 +442,13 @@ def conversation_handler(persistent: bool):
     )
 
 
+def init_stats():
+    global bot_stats
+    storage = stats.RedisStorage(redis_instance(BOT_METRICS_DATABASE)) \
+        if os.getenv("PERSIST_METRICS", "") == "true" else stats.MemStorage()
+    bot_stats = stats.Stats(storage)
+
+
 def reset_user_state(context: CallbackContext):
     context.user_data["current_node"] = START_NODE
     context.user_data["nav_stack"] = [START_NODE]
@@ -458,7 +463,7 @@ def start_bot():
 
     if os.getenv("USE_WEBHOOK", "") == "true":
         port = int(os.environ.get("PORT", 5000))
-        logger.log(logging.INFO, "Starting webhook at port %s", port)
+        logger.log(logging.INFO, f"Starting webhook at port {port}")
         updater.start_webhook(
             listen="0.0.0.0",
             port=int(port),
@@ -511,6 +516,7 @@ def main():
     with open("conversation_tree.textproto", "r") as f:
         f_buffer = f.read()
     reset_bot_data(f_buffer)
+    init_stats()
     start_bot()
 
 
