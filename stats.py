@@ -32,7 +32,7 @@ class Storage:
     def get_users_data(self) -> List[int]:
         pass
 
-    def get_interactions_data(self) -> Counter[str]:
+    def get_interactions_data(self) -> Counter:
         pass
 
 
@@ -114,7 +114,7 @@ class RedisStorage(Storage):
 
         return users_data
 
-    def get_interactions_data(self) -> Counter[str]:
+    def get_interactions_data(self) -> Counter:
         interacts_data = Counter()
         for bucket in self.hourly_buckets(METRICS_RETENTION.total_seconds()):
             node_stats = self.rd.hgetall(f"{REDIS_NODE_NS}:{bucket}").items()
@@ -152,7 +152,7 @@ class MemStorage(Storage):
     def get_users_data(self) -> List[int]:
         return self.timestamp_by_user.values()
 
-    def get_interactions_data(self) -> Counter[str]:
+    def get_interactions_data(self) -> Counter:
         return self.interactions
 
 
