@@ -2,6 +2,8 @@
 
 from collections import deque
 from bot_redis_persistence import RedisPersistence
+from node_util import visit_node
+from morpho_index import MorphoIndex
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -19,7 +21,7 @@ from telegram.ext import (
     MessageHandler,
     Updater,
 )
-from typing import Set
+from typing import Dict, Set
 from urllib.parse import urlparse
 import google.protobuf.text_format as text_format
 import html
@@ -40,6 +42,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 bot_stats: stats.Stats = None
+morpho_index: MorphoIndex = None
 
 CONVERSATION_TREE_URL = "https://raw.githubusercontent.com/skd/telegram-bot-help-ua-ch/main/conversation_tree.textproto"
 DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
@@ -60,6 +63,9 @@ CONTINUE_FEEDBACK = "Пишите дальше, если хотите что-т�
 SEND_FEEDBACK = "✅ Послать отзыв"
 SEND_FEEDBACK_ANONYMOUSLY = "🥷 Послать отзыв анонимно"
 THANK_FOR_FEEDBACK = "Спасибо вам за отзыв! 🙏"
+EMPTY_SEARCH_RESULTS = "По вашему запросу ничего не нашлось 🤔 Пожалуйста, введите новый запрос или выберите пункт меню."
+SEARCH_RESULT_HEADER_TEMPLATE = "По вашему запросу найдена статья \"{}\":"
+DATA_REFRESHED = "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало."
 PROMPT_REPLY = "Выберите пункт"
 ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начать сначала."
 STATISTICS = "Статистика"
@@ -158,12 +164,12 @@ def back_choice(update: Update, context: CallbackContext) -> int:
 
     new_node_name = user_data["nav_stack"][-1]
     user_data["current_node"] = new_node_name
-    return choice(update, context)
+    return choice(update, context, False)
 
 
 def start(update: Update, context: CallbackContext) -> int:
     reset_user_state(context)
-    return choice(update, context)
+    return choice(update, context, False)
 
 
 def show_admin_menu(update: Update, context: CallbackContext) -> int:
@@ -218,9 +224,11 @@ def reload_conversation(update: Update, context: CallbackContext) -> int:
 
 
 def reset_bot_data(conversation_textproto: str, update: Update = None):
-    global CONVERSATION_DATA
+    global CONVERSATION_DATA, morpho_index
     conversation = text_format.Parse(
         conversation_textproto, conversation_proto.Conversation())
+    morpho_index = MorphoIndex(conversation)
+
 
     # Avoid bringing CONVERSATION_DATA into an inconsistent state.
     new_conversation_data = {}
@@ -263,7 +271,11 @@ def handle_answer(answer, update: Update):
         update.message.reply_photo(photob)
 
 
-def choice(update: Update, context: CallbackContext) -> int:
+def is_admin_user(update: Update):
+    return update.message.from_user.username in ADMIN_USERS
+
+
+def choice(update: Update, context: CallbackContext, organic_call: bool=True) -> int:
     if not update.message:
         return CHOOSING
 
@@ -272,6 +284,21 @@ def choice(update: Update, context: CallbackContext) -> int:
 
     if update.message.text in CONVERSATION_DATA["node_by_name"]:
         next_node_name = update.message.text
+    elif organic_call:
+        search_results = morpho_index.search(update.message.text)
+        if search_results:
+            next_node_name = search_results[0][0]
+            update.message.reply_text(SEARCH_RESULT_HEADER_TEMPLATE.format(next_node_name))
+        else:
+            logger.info(f"Freetext search yielded nothing: [{update.message.text}]")
+            update.message.reply_text(
+                EMPTY_SEARCH_RESULTS,
+                reply_markup=build_keyboard_options(
+                    user_data["current_node"],
+                    is_admin_user(update),
+                    len(user_data["nav_stack"])))
+            return CHOOSING
+
     if next_node_name in CONVERSATION_DATA["keyboard_by_name"]:
         user_data["current_node"] = next_node_name
         try:
@@ -290,25 +317,12 @@ def choice(update: Update, context: CallbackContext) -> int:
         current_keyboard = ReplyKeyboardMarkup(
             [[START_OVER]], one_time_keyboard=True)
         update.message.reply_text(
-            "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало.",
+            DATA_REFRESHED,
             reply_markup=current_keyboard)
         return CHOOSING
 
-    current_keyboard_options = deque()
-    current_keyboard_options.extend(
-        CONVERSATION_DATA["keyboard_by_name"][current_node_name])
-    if len(user_data["nav_stack"]) > 1:
-        current_keyboard_options.append([BACK])
-    if next_node_name != START_NODE:
-        current_keyboard_options.append([START_OVER])
-    else:
-        if FEEDBACK_CHANNEL_ID is not None:
-            current_keyboard_options.append([FEEDBACK])
-        if update.message.from_user.username in ADMIN_USERS:
-            current_keyboard_options.appendleft([ADMIN])
-
-    current_keyboard = ReplyKeyboardMarkup(
-        current_keyboard_options, one_time_keyboard=True)
+    current_keyboard = build_keyboard_options(
+        current_node_name, is_admin_user(update), len(user_data["nav_stack"]))
 
     for answer in current_node.answer[:-1]:
         handle_answer(answer, update)
@@ -326,6 +340,25 @@ def choice(update: Update, context: CallbackContext) -> int:
             reply_markup=current_keyboard)
 
     return CHOOSING
+
+
+def build_keyboard_options(keyboard_options_node: str, show_admin_button: bool, nav_stack_depth: int):
+    current_keyboard_options = deque()
+    current_keyboard_options.extend(
+        CONVERSATION_DATA["keyboard_by_name"][keyboard_options_node])
+
+    if nav_stack_depth <= 1:
+        if show_admin_button:
+            current_keyboard_options.appendleft([ADMIN])
+        if FEEDBACK_CHANNEL_ID is not None:
+            current_keyboard_options.append([FEEDBACK])
+    if nav_stack_depth >= 2:
+        current_keyboard_options.append([BACK])
+    if nav_stack_depth > 2:
+        current_keyboard_options.append([START_OVER])
+
+    return ReplyKeyboardMarkup(
+        current_keyboard_options, one_time_keyboard=True)
 
 
 def start_feedback(update: Update, context: CallbackContext):
@@ -434,7 +467,7 @@ def conversation_handler(persistent: bool):
         fallbacks=[
             MessageHandler(
                 Filters.chat_type.private &
-                Filters.regex("%s$" % (START_OVER)), start),
+                Filters.regex(f"^{START_OVER}$"), start),
         ],
         name="main",
         persistent=persistent,
@@ -473,17 +506,6 @@ def start_bot():
         updater.start_polling()
 
     updater.idle()
-
-
-def visit_node(node: conversation_proto.ConversationNode, consumer, visited: Set = None):
-    if visited is None:
-        visited = set()
-    visited.add(node.name)
-    consumer(node)
-    if len(node.link) > 0:
-        for subnode in node.link:
-            if len(subnode.branch.name) > 0 and subnode.branch.name not in visited:
-                visit_node(subnode.branch, consumer, visited)
 
 
 def create_node_by_name(conversation: conversation_proto.Conversation):
