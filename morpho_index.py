@@ -95,11 +95,11 @@ class MorphoIndex:
 			for item in node_counts.items():
 				count = found_word_count_by_node_name.get(item[0], 0)
 				found_word_count_by_node_name[item[0]] = count + 1
-			for item in node_counts.items():
 				result_multiset.add(item[0], item[1])
 
 		# Boost nodes having hits for multiple words from the query.
-		nodes_and_scores = [(node_name, count * found_word_count_by_node_name[node_name]) for (node_name, count) in result_multiset.items()]
+		nodes_and_scores = [(node_name, count * found_word_count_by_node_name[node_name]) \
+			for (node_name, count) in result_multiset.items()]
 		nodes_and_scores.sort(key=itemgetter(1), reverse=True)
-		logger.info(f"Search: [{text}] -> {nodes_and_scores}")
+		logger.debug(f"Search: [{text}] -> {nodes_and_scores}")
 		return nodes_and_scores
