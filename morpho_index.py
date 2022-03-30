@@ -71,7 +71,9 @@ class MorphoIndex:
 		def process_node(node: conversation_proto.ConversationNode):
 			if node.name in IGNORED_NODES:
 				return
-			process_text(node, node.name, 5)
+
+			# Drastically boost search terms found in the node name.
+			process_text(node, node.name, 9000)
 			for ans in node.answer:
 				if ans.text:
 					process_text(node, ans.text, 1)
