@@ -63,7 +63,7 @@ CONTINUE_FEEDBACK = "Пишите дальше, если хотите что-т�
 SEND_FEEDBACK = "✅ Послать отзыв"
 SEND_FEEDBACK_ANONYMOUSLY = "🥷 Послать отзыв анонимно"
 THANK_FOR_FEEDBACK = "Спасибо вам за отзыв! 🙏"
-EMPTY_SEARCH_RESULTS = "По вашему запросу ничего не нашлось. Пожалуйста, измените его или выберите пункт меню."
+EMPTY_SEARCH_RESULTS = "По вашему запросу ничего не нашлось 🤔 Пожалуйста, введите новый запрос или выберите пункт меню."
 SEARCH_RESULT_HEADER_TEMPLATE = "По вашему запросу найдена статья \"{}\":"
 DATA_REFRESHED = "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало."
 PROMPT_REPLY = "Выберите пункт"
@@ -271,6 +271,10 @@ def handle_answer(answer, update: Update):
         update.message.reply_photo(photob)
 
 
+def is_admin_user(update: Update):
+    return update.message.from_user.username in ADMIN_USERS
+
+
 def choice(update: Update, context: CallbackContext, organic_call: bool=True) -> int:
     if not update.message:
         return CHOOSING
@@ -291,7 +295,7 @@ def choice(update: Update, context: CallbackContext, organic_call: bool=True) ->
                 EMPTY_SEARCH_RESULTS,
                 reply_markup=build_keyboard_options(
                     user_data["current_node"],
-                    update,
+                    is_admin_user(update),
                     len(user_data["nav_stack"])))
             return CHOOSING
 
@@ -318,7 +322,7 @@ def choice(update: Update, context: CallbackContext, organic_call: bool=True) ->
         return CHOOSING
 
     current_keyboard = build_keyboard_options(
-        current_node_name, update, len(user_data["nav_stack"]))
+        current_node_name, is_admin_user(update), len(user_data["nav_stack"]))
 
     for answer in current_node.answer[:-1]:
         handle_answer(answer, update)
@@ -338,13 +342,13 @@ def choice(update: Update, context: CallbackContext, organic_call: bool=True) ->
     return CHOOSING
 
 
-def build_keyboard_options(keyboard_options_node: str, update: Update, nav_stack_depth: int):
+def build_keyboard_options(keyboard_options_node: str, show_admin_button: bool, nav_stack_depth: int):
     current_keyboard_options = deque()
     current_keyboard_options.extend(
         CONVERSATION_DATA["keyboard_by_name"][keyboard_options_node])
 
     if nav_stack_depth <= 1:
-        if update.message.from_user.username in ADMIN_USERS:
+        if show_admin_button:
             current_keyboard_options.appendleft([ADMIN])
         if FEEDBACK_CHANNEL_ID is not None:
             current_keyboard_options.append([FEEDBACK])
