@@ -197,6 +197,13 @@ def show_stats(update: Update, context: CallbackContext) -> int:
     return show_admin_menu(update, context)
 
 
+def pull_conversation():
+    logger.info(f"Pulling conversation model from {CONVERSATION_TREE_URL}")
+    with urllib.request.urlopen(CONVERSATION_TREE_URL,
+                                context=ssl.create_default_context()) as f:
+        return f.read().decode("utf-8")
+
+
 def reload_conversation(update: Update, context: CallbackContext) -> int:
     username = update.message.from_user.username
     if username not in ADMIN_USERS:
@@ -204,16 +211,13 @@ def reload_conversation(update: Update, context: CallbackContext) -> int:
 
     logger.info(f"Reloading conversation from {CONVERSATION_TREE_URL}")
     try:
-        convo_buffer = None
-        with urllib.request.urlopen(CONVERSATION_TREE_URL,
-                                    context=ssl.create_default_context()) as f:
-            convo_buffer = f.read().decode("utf-8")
+        convo_buffer = pull_conversation()
         reset_bot_data(convo_buffer, update)
         bot_stats.conversation_reloaded(username)
         logger.info(f"Conversation reload successful ({username})")
     except urllib.error.URLError as e:
         logger.error(
-            "Failed to reload conversation from GitHub", exc_info=e)
+            "Failed to reload conversation from URL", exc_info=e)
         update.message.reply_text(
             f"Ошибка загрузки диалога:\n{e}",
             reply_markup=ReplyKeyboardMarkup(
@@ -533,10 +537,16 @@ def create_keyboard_options(node_by_name):
 
 
 def main():
-    f_buffer = None
-    with open("conversation_tree.textproto", "r") as f:
-        f_buffer = f.read()
-    reset_bot_data(f_buffer)
+    try:
+        convo_buffer = pull_conversation()
+    except urllib.error.URLError as e:
+        logger.error(
+            "Failed to reload conversation from URL, falling back to a local conversation model",
+            exc_info=e)
+        convo_buffer = None
+        with open("conversation_tree.textproto", "r") as f:
+            convo_buffer = f.read()
+    reset_bot_data(convo_buffer)
     init_stats()
     start_bot()
 
