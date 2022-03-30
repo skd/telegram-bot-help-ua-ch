@@ -290,11 +290,14 @@ def choice(update: Update, context: CallbackContext, organic_call: bool=True) ->
         next_node_name = update.message.text
     elif organic_call:
         search_results = morpho_index.search(update.message.text)
+        user_id = update.message.from_user.id
         if search_results:
             next_node_name = search_results[0][0]
             update.message.reply_text(SEARCH_RESULT_HEADER_TEMPLATE.format(next_node_name))
+            bot_stats.collect_search(user_id, update.message.text, len(search_results))
         else:
             logger.info(f"Freetext search yielded nothing: [{update.message.text}]")
+            bot_stats.collect_search(user_id, update.message.text, 0)
             update.message.reply_text(
                 EMPTY_SEARCH_RESULTS,
                 reply_markup=build_keyboard_options(
