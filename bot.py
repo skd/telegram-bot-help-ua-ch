@@ -64,6 +64,9 @@ SEND_FEEDBACK = "✅ Послать отзыв"
 SEND_FEEDBACK_ANONYMOUSLY = "🥷 Послать отзыв анонимно"
 THANK_FOR_FEEDBACK = "Спасибо вам за отзыв! 🙏"
 EMPTY_SEARCH_RESULTS = "По вашему запросу ничего не нашлось 🤔 Пожалуйста, введите новый запрос или выберите пункт меню."
+if FEEDBACK_CHANNEL_ID is not None:
+    EMPTY_SEARCH_RESULTS = \
+        f"{EMPTY_SEARCH_RESULTS} Если у нас нет нужной статьи и Google тоже не может ответить на ваш вопрос, вы можете сообщить нам об этом, нажав кнопку \"{FEEDBACK}\"."
 SEARCH_RESULT_HEADER_TEMPLATE = "По вашему запросу найдена статья \"{}\":"
 DATA_REFRESHED = "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало."
 PROMPT_REPLY = "Выберите пункт"
@@ -303,7 +306,8 @@ def choice(update: Update, context: CallbackContext, organic_call: bool=True) ->
                 reply_markup=build_keyboard_options(
                     user_data["current_node"],
                     is_admin_user(update),
-                    len(user_data["nav_stack"])))
+                    len(user_data["nav_stack"]),
+                    True))
             return CHOOSING
 
     if next_node_name in CONVERSATION_DATA["keyboard_by_name"]:
@@ -349,15 +353,19 @@ def choice(update: Update, context: CallbackContext, organic_call: bool=True) ->
     return CHOOSING
 
 
-def build_keyboard_options(keyboard_options_node: str, show_admin_button: bool, nav_stack_depth: int):
+def build_keyboard_options(keyboard_options_node: str, show_admin_button: bool, nav_stack_depth: int, append_feedback_button: bool=False):
     current_keyboard_options = deque()
+
+    # Promote the feedback button to the top if forced (e.g. on a no-results freetext query).
+    if append_feedback_button and FEEDBACK_CHANNEL_ID is not None:
+        current_keyboard_options.append([FEEDBACK])
     current_keyboard_options.extend(
         CONVERSATION_DATA["keyboard_by_name"][keyboard_options_node])
 
     if nav_stack_depth <= 1:
         if show_admin_button:
             current_keyboard_options.appendleft([ADMIN])
-        if FEEDBACK_CHANNEL_ID is not None:
+        if not append_feedback_button and FEEDBACK_CHANNEL_ID is not None:
             current_keyboard_options.append([FEEDBACK])
     if nav_stack_depth >= 2:
         current_keyboard_options.append([BACK])
