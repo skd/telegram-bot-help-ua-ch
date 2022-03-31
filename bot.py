@@ -320,10 +320,14 @@ def search(update: Update, context: CallbackContext, search_terms: str):
     else:
         logger.info(f"Freetext search yielded nothing: [{search_terms}]")
         bot_stats.collect_search(user_id, search_terms, 0)
-        update.message.reply_text(EMPTY_SEARCH_RESULTS,
-                                  reply_markup=ReplyKeyboardMarkup(
-                                      [[FEEDBACK], [BACK], [START_OVER]],
-                                      one_time_keyboard=True))
+        keyboard_options = []
+        if FEEDBACK_CHANNEL_ID is not None:
+            keyboard_options.append([FEEDBACK])
+        keyboard_options.extend([[BACK], [START_OVER]])
+        update.message.reply_text(
+            EMPTY_SEARCH_RESULTS,
+            reply_markup=ReplyKeyboardMarkup(keyboard_options,
+                                             one_time_keyboard=True))
         return SEARCH_FAILED
 
 
@@ -467,7 +471,7 @@ def send_feedback(update: Update, context: CallbackContext):
                        FEEDBACK_CHANNEL_ID,
                        exc_info=e)
 
-    bot_stats.collect(update.message.from_user.id, "Send Feedback")
+    bot_stats.collect_interaction(update.message.from_user.id, "Send Feedback")
 
     context.user_data["feedback"] = []
     update.message.reply_text(THANK_FOR_FEEDBACK)
