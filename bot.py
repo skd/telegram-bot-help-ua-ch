@@ -45,7 +45,8 @@ logger = logging.getLogger(__name__)
 bot_stats: stats.Stats = None
 morpho_index: MorphoIndex = None
 
-CONVERSATION_TREE_URL = "https://raw.githubusercontent.com/skd/telegram-bot-help-ua-ch/main/conversation_tree.textproto"
+CONVERSATION_TREE_FILE = "conversation_tree.textproto"
+CONVERSATION_TREE_URL = f"https://raw.githubusercontent.com/skd/telegram-bot-help-ua-ch/main/{CONVERSATION_TREE_FILE}"
 DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
 API_KEY = os.getenv('TELEGRAM_BOT_API_KEY')
@@ -214,10 +215,22 @@ def show_stats(update: Update, context: CallbackContext) -> int:
 
 
 def pull_conversation():
-    logger.info(f"Pulling conversation model from {CONVERSATION_TREE_URL}")
-    with urllib.request.urlopen(CONVERSATION_TREE_URL,
-                                context=ssl.create_default_context()) as f:
-        return f.read().decode("utf-8")
+    if os.getenv("FORCE_LOCAL_CONVERSATION", "") == "true":
+        logger.info(f"Loading conversation model from {CONVERSATION_TREE_FILE}")
+        with open(CONVERSATION_TREE_FILE, "r") as f:
+            return f.read()
+    else:
+        logger.info(f"Pulling conversation model from {CONVERSATION_TREE_URL}")
+        try:
+            with urllib.request.urlopen(CONVERSATION_TREE_URL,
+                                        context=ssl.create_default_context()) as f:
+                return f.read().decode("utf-8")
+        except urllib.error.URLError as e:
+            logger.error(
+                "Failed to reload conversation from URL, falling back to a local conversation model",
+                exc_info=e)
+            with open(CONVERSATION_TREE_FILE, "r") as f:
+                return f.read()
 
 
 def reload_conversation(update: Update, context: CallbackContext) -> int:
@@ -602,16 +615,7 @@ def create_keyboard_options(node_by_name):
 
 
 def main():
-    try:
-        convo_buffer = pull_conversation()
-    except urllib.error.URLError as e:
-        logger.error(
-            "Failed to reload conversation from URL, falling back to a local conversation model",
-            exc_info=e)
-        convo_buffer = None
-        with open("conversation_tree.textproto", "r") as f:
-            convo_buffer = f.read()
-    reset_bot_data(convo_buffer)
+    reset_bot_data(pull_conversation())
     init_stats()
     start_bot()
 
