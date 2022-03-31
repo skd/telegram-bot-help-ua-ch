@@ -36,6 +36,7 @@ message ConversationNode {
             string photo = 3;
             Venue venue = 4;
         }
+        repeated string keywords = 5;
     }
     repeated Answer answer = 2;
     repeated ConversationLink link = 3;
