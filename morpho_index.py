@@ -18,7 +18,6 @@ morph = pymorphy2.MorphAnalyzer(lang="ru")
 
 logger = logging.getLogger(__name__)
 
-
 WordTag = namedtuple("WordTag", ["word", "part_of_speech"])
 
 
@@ -34,6 +33,7 @@ def word_tag(word: str) -> WordTag:
 
 
 class MorphoIndex:
+
     def __init__(self, conversation: conversation_proto.Conversation):
         self._node_counts_by_word_tag: Dict[WordTag, Multiset] = {}
 
@@ -67,8 +67,7 @@ class MorphoIndex:
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 "node_counts_by_word_tag:\n%s",
-                pprint.pformat(self._node_counts_by_word_tag,
-                        indent=2))
+                pprint.pformat(self._node_counts_by_word_tag, indent=2))
 
     def search(self, text: str) -> List[Tuple[str, int]]:
         words = re.split(SPLIT_REGEX, text)
