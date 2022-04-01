@@ -32,6 +32,7 @@ import os
 import proto.conversation_pb2 as conversation_proto
 import redis
 import ssl
+import sys
 import telegram.error
 import traceback
 import urllib.request
@@ -45,8 +46,8 @@ logger = logging.getLogger(__name__)
 bot_stats: stats.Stats = None
 morpho_index: MorphoIndex = None
 
-CONVERSATION_TREE_FILE = "conversation_tree.textproto"
-CONVERSATION_TREE_URL = f"https://raw.githubusercontent.com/skd/telegram-bot-help-ua-ch/main/{CONVERSATION_TREE_FILE}"
+CONVERSATION_MODEL_LOCAL_URL = "file:conversation_tree.textproto"
+CONVERSATION_MODEL_URL = os.getenv("CONVERSATION_MODEL_URL", CONVERSATION_MODEL_LOCAL_URL)
 DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
 API_KEY = os.getenv('TELEGRAM_BOT_API_KEY')
@@ -215,22 +216,16 @@ def show_stats(update: Update, context: CallbackContext) -> int:
 
 
 def pull_conversation():
-    if os.getenv("FORCE_LOCAL_CONVERSATION", "") == "true":
-        logger.info(f"Loading conversation model from {CONVERSATION_TREE_FILE}")
-        with open(CONVERSATION_TREE_FILE, "r") as f:
-            return f.read()
-    else:
-        logger.info(f"Pulling conversation model from {CONVERSATION_TREE_URL}")
-        try:
-            with urllib.request.urlopen(CONVERSATION_TREE_URL,
-                                        context=ssl.create_default_context()) as f:
-                return f.read().decode("utf-8")
-        except urllib.error.URLError as e:
-            logger.error(
-                "Failed to reload conversation from URL, falling back to a local conversation model",
-                exc_info=e)
-            with open(CONVERSATION_TREE_FILE, "r") as f:
-                return f.read()
+    logger.info(f"Loading conversation model from {CONVERSATION_MODEL_URL}")
+    try:
+        with urllib.request.urlopen(CONVERSATION_MODEL_URL,
+                                    context=ssl.create_default_context()) as f:
+            return f.read().decode("utf-8")
+    except urllib.error.URLError as e:
+        logger.error(
+            f"Failed to load conversation from {CONVERSATION_MODEL_URL}",
+            exc_info=e)
+        raise e
 
 
 def reload_conversation(update: Update, context: CallbackContext) -> int:
@@ -243,7 +238,6 @@ def reload_conversation(update: Update, context: CallbackContext) -> int:
         bot_stats.conversation_reloaded(username)
         logger.info(f"Conversation reload successful ({username})")
     except urllib.error.URLError as e:
-        logger.error("Failed to reload conversation from URL", exc_info=e)
         update.message.reply_text(f"Ошибка загрузки диалога:\n{e}",
                                   reply_markup=ReplyKeyboardMarkup(
                                       [[START_OVER]], one_time_keyboard=True))
@@ -357,13 +351,13 @@ def update_state_and_send_conversation(update: Update,
     """Sends a conversation node contents with a keyboard attached.
 
     In case display_node_name does not have keyboard options, the code will
-    display display_node_name content and fall-back to keyboard_node_name for 
+    display display_node_name content and fall-back to keyboard_node_name for
     keyboard options.
 
     Args:
         keyboard_node_name (str): a conversation node to use for keyboard
             options.
-        display_node_name (str): a conversation node to use for contents. If 
+        display_node_name (str): a conversation node to use for contents. If
             None, keyboard_node_name is used.
     """
     if display_node_name is None:
@@ -615,7 +609,10 @@ def create_keyboard_options(node_by_name):
 
 
 def main():
-    reset_bot_data(pull_conversation())
+    try:
+        reset_bot_data(pull_conversation())
+    except:
+        sys.exit(3)
     init_stats()
     start_bot()
 
