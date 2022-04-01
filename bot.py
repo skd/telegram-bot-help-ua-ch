@@ -336,6 +336,9 @@ def search_failed_back(update: Update, context: CallbackContext) -> int:
                                        context.user_data["current_node"])
     return CHOOSING
 
+def search_again(update: Update, context: CallbackContext) -> int:
+    return search(update, context, update.message.text)
+
 
 def update_state_and_send_conversation(update: Update,
                                        context: CallbackContext,
@@ -520,7 +523,7 @@ def conversation_handler(persistent: bool):
                     search_failed_back),
                 MessageHandler(
                     Filters.chat_type.private & Filters.all
-                    & ~Filters.regex(f"^{START_OVER}$"), collect_feedback),
+                    & ~Filters.regex(f"^{START_OVER}$"), search_again),
             ],
             ADMIN_MENU: [
                 MessageHandler(
