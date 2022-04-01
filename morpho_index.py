@@ -17,6 +17,7 @@ SPLIT_REGEX = re.compile(f"[^а-яёґєіїА-ЯЁҐЄІЇa-zA-Z{UKR_APOS}-]+")
 RUSSIAN_WORD = re.compile("^[а-яёА-ЯЁ-]+$")
 UKRAINIAN_WORD = re.compile(f"^[А-ЩЬЮЯҐЄІЇа-щьюяґєії{UKR_APOS}-]+$")
 UNKNOWN_POS = "UNK"
+NODE_NAME_TERM_SCORE = 9000
 IGNORED_NODES = set(["/start"])
 MORPH_RU = pymorphy2.MorphAnalyzer()
 MORPH_UK = pymorphy2.MorphAnalyzer(lang='uk')
@@ -26,12 +27,10 @@ logger = logging.getLogger(__name__)
 WordTag = namedtuple("WordTag", ["word", "part_of_speech"])
 
 
-def normalize_word(word: str, lang: str):
-    word = word.lower()
-    if lang == 'ru':
-        word = re.sub(r"ё", "е", word)
-    elif lang == 'uk':
-        word = re.sub(UKR_APOS_REGEX, "'", re.sub("i", "і", word))
+def normalize_word(word: str):
+    word = re.sub(APOS_STRIP_REGEX, '', word)
+    word = re.sub(r"ё", "е", word.lower())
+    word = re.sub(UKR_APOS_REGEX, "'", word)
     return word
 
 
@@ -40,24 +39,22 @@ def word_tag_for_parse(parse):
 
 
 def word_tags(word: str) -> List[WordTag]:
-    word = re.sub(APOS_STRIP_REGEX, '', word)
-    is_russian = re.match(RUSSIAN_WORD, word)
-    is_ukrainian = re.match(UKRAINIAN_WORD, word)
-    lang = "ru" if is_russian else "uk" if is_ukrainian else "unk"
-    word = normalize_word(word, lang)
+    word = normalize_word(word)
     length = len(word)
 
     # Retain abbreviated canton names (e.g. "ZH").
-    if length < 2 or (length < 3 and (is_russian or is_ukrainian)):
+    if length < 2:
         return []
 
+    is_russian = re.match(RUSSIAN_WORD, word)
+    is_ukrainian = re.match(UKRAINIAN_WORD, word)
     parse_ru = None
     parse_uk = None
     if is_russian:
         parses = MORPH_RU.parse(word)
         if parses:
             parse_ru = parses[0]
-    if not parse_ru and is_ukrainian:
+    if is_ukrainian:
         parses = MORPH_UK.parse(word)
         if parses:
             parse_uk = prefer_noun(word, parses)
@@ -109,7 +106,11 @@ class MorphoIndex:
                 return
 
             # Drastically boost search terms found in the node name.
-            process_text(node, node.name, 9000)
+            process_text(node, node.name, NODE_NAME_TERM_SCORE)
+            for alt_name in node.alt_name:
+                process_text(node, alt_name, NODE_NAME_TERM_SCORE)
+            for keyword in node.keyword:
+                process_text(node, keyword, 1)
             for ans in node.answer:
                 if ans.text:
                     process_text(node, ans.text, 1)
@@ -117,8 +118,6 @@ class MorphoIndex:
                     process_text(node, ans.links.text, 1)
                     for url in ans.links.url:
                         process_text(node, url.label, 1)
-                for keyword in ans.keywords:
-                    process_text(node, keyword, 1)
 
         for node in conversation.node:
             visit_node(node, process_node)

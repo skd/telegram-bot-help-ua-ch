@@ -28,6 +28,8 @@ message ConversationLink {
 
 message ConversationNode {
     string name = 1;
+    repeated string alt_name = 2;
+    repeated string keyword = 3;
 
     message Answer {
         oneof answer {
@@ -36,10 +38,9 @@ message ConversationNode {
             string photo = 3;
             Venue venue = 4;
         }
-        repeated string keywords = 5;
     }
-    repeated Answer answer = 2;
-    repeated ConversationLink link = 3;
+    repeated Answer answer = 4;
+    repeated ConversationLink link = 5;
 }
 
 message Conversation {
