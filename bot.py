@@ -336,6 +336,7 @@ def search_failed_back(update: Update, context: CallbackContext) -> int:
                                        context.user_data["current_node"])
     return CHOOSING
 
+
 def search_again(update: Update, context: CallbackContext) -> int:
     return search(update, context, update.message.text)
 
