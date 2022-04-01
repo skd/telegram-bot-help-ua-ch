@@ -435,7 +435,7 @@ def start_feedback(update: Update, context: CallbackContext):
 def collect_feedback(update: Update, context: CallbackContext):
     if FEEDBACK_CHANNEL_ID is None:
         return start(update, context)
-    if  context.user_data["feedback"] is not None:
+    if  context.user_data["feedback"] is None:
          context.user_data["feedback"] = []
     context.user_data["feedback"].append(update.message)
 
