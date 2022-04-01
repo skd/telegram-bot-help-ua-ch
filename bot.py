@@ -32,7 +32,6 @@ import os
 import proto.conversation_pb2 as conversation_proto
 import redis
 import ssl
-import sys
 import telegram.error
 import traceback
 import urllib.request
@@ -231,7 +230,7 @@ def pull_conversation():
 def reload_conversation(update: Update, context: CallbackContext) -> int:
     username = update.message.from_user.username
 
-    logger.info(f"Reloading conversation from {CONVERSATION_TREE_URL}")
+    logger.info(f"Reloading conversation from {CONVERSATION_MODEL_URL}")
     try:
         convo_buffer = pull_conversation()
         reset_bot_data(convo_buffer, update)
@@ -609,10 +608,7 @@ def create_keyboard_options(node_by_name):
 
 
 def main():
-    try:
-        reset_bot_data(pull_conversation())
-    except:
-        sys.exit(3)
+    reset_bot_data(pull_conversation())
     init_stats()
     start_bot()
 
