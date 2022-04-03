@@ -933,6 +933,10 @@ node {
         url: "https://www.vox-sprachschule.ch/en/refugees"
       }
       url {
+        label: "Чат с бесплатными уроками немецкого для беженцев"
+        url: "https://t.me/deutsch_refugees"
+      }
+      url {
         label: "Бесплатные материалы от Deutsche Welle"
         url: "https://m.dw.com/de/deutsch-lernen/s-2055"
       }
@@ -1080,6 +1084,14 @@ node {
         url: "https://www.blv.admin.ch/blv/en/home/tiere/reisen-mit-heimtieren.html"
       }
       url {
+        label: "Правила кантона Цюрих (UA)"
+        url: "https://www.zh.ch/content/dam/zhweb/bilder-dokumente/themen/umwelt-tiere/tiere/veterinaeramt/haustiere/merkblatt_de_uk_ua_c.pdf"
+      }
+      url {
+        label: "Чат для беженцев о домашних животных"
+        url: "https://t.me/helppetsfromukraine"
+      }
+      url {
         label: "Ветеринарные клиники: оформление животных"
         url: "https://t.me/UASchweiz/2832"
       }
@@ -1103,6 +1115,10 @@ node {
       url {
         label: "Информация о школьном образовании для беженцев"
         url: "https://t.me/seep_helpukrainians/98"
+      }
+      url {
+        label: "Чат с предложениями для студентов"
+        url: "https://t.me/Stipendii4UA"
       }
       url {
         label: "ETH Zurich"
@@ -1161,12 +1177,20 @@ node {
         url: "https://www.fff-basel.ch/"
       }
       url {
-        label: "Берн: t.me/help_people_fromUkraine"
+        label: "Берн: help_people_fromUkraine"
         url: "https://t.me/help_people_fromUkraine"
+      }
+      url {
+        label: "Биль: BielBienneUkraine"
+        url: "https://t.me/BielBienneUkraine"
       }
       url {
         label: "Вале (Валлис): ValaisUkraine"
         url: "https://t.me/ValaisUkraine"
+      }
+       url {
+        label: "Винтертур: WinterthurUkraine"
+        url: "https://t.me/WinterthurUkraine"
       }
       url {
         label: "Во (Лозанна): LousanneUkraine"
@@ -1215,6 +1239,10 @@ node {
       url {
         label: "Тичино: TicinoLuganoUkraine"
         url: "https://t.me/TicinoLuganoUkraine"
+      }
+      url {
+        label: "Тун: ThunUkraine"
+        url: "https://t.me/ThunUkraine"
       }
       url {
         label: "Тургау: ThurgauUkraine"
