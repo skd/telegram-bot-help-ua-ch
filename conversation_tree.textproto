@@ -1213,6 +1213,10 @@ node {
         url: "https://t.me/chatsuisse"
       }
       url {
+        label: "Интерлакен: ukinterlaken"
+        url: "https://t.me/ukinterlaken"
+      }
+      url {
         label: "Люцерн: chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
         url: "https://chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
       }
