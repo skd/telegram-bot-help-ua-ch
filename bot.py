@@ -85,7 +85,7 @@ START_NODE = "/start"
 ADMIN_USERS = [
     "edgnkv",
     "lr2kate",
-    "rprokofyev"
+    "rprokofyev",
     "SymbioticMe",
     "thecrdev",
     "Zygimantas",
