@@ -615,6 +615,7 @@ def create_keyboard_options(node_by_name):
 
 
 def main():
+    logger.info(f"Admin users: {ADMIN_USERS}")
     reset_bot_data(pull_conversation())
     init_stats()
     start_bot()
