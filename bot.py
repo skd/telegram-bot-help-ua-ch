@@ -83,11 +83,12 @@ RELOAD = "Обновить данные разговора"
 START_NODE = "/start"
 
 ADMIN_USERS = [
-    "SymbioticMe",
-    "lr2kate",
     "edgnkv",
-    "Zygimantas",
+    "lr2kate",
+    "rprokofyev"
+    "SymbioticMe",
     "thecrdev",
+    "Zygimantas",
 ]
 
 CONVERSATION_DATA = {}
