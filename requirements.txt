@@ -1,9 +1,9 @@
 cryptography==36.0.2
 multiset==3.0.1
-protobuf==3.19.4
-pymorphy2==0.9.1
-pymorphy2-dicts-ru==2.4.417127.4579844
-pymorphy2-dicts-uk==2.4.1.1.1460299261
+protobuf==3.20.0
+pymorphy3==1.1.0
+pymorphy3-dicts-ru==2.4.417150.4580142
+pymorphy3-dicts-uk==2.4.1.1.1641732236
 pytest==7.0.1
 python-telegram-bot==13.11
 pytz==2022.1
