@@ -1207,6 +1207,10 @@ node {
         url: "https://www.facebook.com/groups/3223556504546235/?ref=share"
       }
       url {
+        label: "Граубюнден: ukrainians_gr"
+        url: "https://t.me/ukrainians_gr"
+      }      
+      url {
         label: "Золотурн: SolothurnUkraine"
         url: "https://t.me/SolothurnUkraine"
       }
@@ -1215,12 +1219,12 @@ node {
         url: "https://t.me/GeneveUkraine"
       }
       url {
-        label: "Женева и Во: chatsuisse"
-        url: "https://t.me/chatsuisse"
-      }
-      url {
         label: "Интерлакен: ukinterlaken"
         url: "https://t.me/ukinterlaken"
+      }
+      url {
+        label: "Лангеталь, Берн: ukrainaLangenthal_Bern"
+        url: "https://t.me/ukrainaLangenthal_Bern"
       }
       url {
         label: "Люцерн: chat.whatsapp.com/G8qFB8UzZINJJGPorMiCys"
