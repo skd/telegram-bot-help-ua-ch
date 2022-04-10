@@ -1,4 +1,5 @@
 cryptography==36.0.2
+environs==9.5.0
 multiset==3.0.1
 protobuf==3.19.4
 pymorphy2==0.9.1

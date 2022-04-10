@@ -23,11 +23,11 @@ from telegram.ext import (
     Updater,
 )
 from urllib.parse import urlparse
+import config
 import google.protobuf.text_format as text_format
 import html
 import json
 import logging
-import os
 import proto.conversation_pb2 as conversation_proto
 import redis
 import ssl
@@ -38,22 +38,12 @@ import stats
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
+    level=config.LOGLEVEL,
 )
 logger = logging.getLogger(__name__)
 bot_stats: stats.Stats = None
 morpho_index: MorphoIndex = None
 convo_data: ConversationData = None
-
-CONVERSATION_MODEL_LOCAL_URL = "file:conversation_tree.textproto"
-CONVERSATION_MODEL_URL = os.getenv("CONVERSATION_MODEL_URL",
-                                   CONVERSATION_MODEL_LOCAL_URL)
-DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
-API_KEY = os.getenv('TELEGRAM_BOT_API_KEY')
-FEEDBACK_CHANNEL_ID = os.getenv("FEEDBACK_CHANNEL_ID", None)
-if FEEDBACK_CHANNEL_ID is not None:
-    FEEDBACK_CHANNEL_ID = int(FEEDBACK_CHANNEL_ID)
 
 CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK, ADMIN_MENU, SEARCH_FAILED = \
     range(5)
@@ -83,23 +73,12 @@ RELOAD = "Обновить данные разговора"
 
 START_NODE = "/start"
 
-ADMIN_USERS = [
-    "edgnkv",
-    "lr2kate",
-    "rprokofyev",
-    "SymbioticMe",
-    "thecrdev",
-    "Zygimantas",
-]
-
 PHOTO_CACHE = {}
 BOT_PERSISTENCE_DATABASE, BOT_METRICS_DATABASE = range(2)
 
 
 def redis_instance(redis_db: int):
-    redis_url = os.getenv("REDIS_TLS_URL", "redis://localhost:6379")
-
-    url = urlparse(redis_url)
+    url = urlparse(config.REDIS_URL)
     use_ssl = url.scheme == 'rediss'
     logger.info(
         f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}"
@@ -117,26 +96,24 @@ def redis_instance(redis_db: int):
 
 def redis_persistence():
     encryption_key_bytes = None
-    encryption_key = os.getenv("BOT_STATE_ENCRYPTION_KEY")
-    if encryption_key is None:
+    if config.BOT_STATE_ENCRYPTION_KEY is None:
         logger.error(
             "*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***"
         )
     else:
-        encryption_key_bytes = encryption_key.encode()
+        encryption_key_bytes = config.BOT_STATE_ENCRYPTION_KEY.encode()
     rd = redis_instance(BOT_PERSISTENCE_DATABASE)
     return RedisPersistence(rd, encryption_key_bytes)
 
 
-persistence = redis_persistence() if os.getenv("PERSIST_SESSIONS",
-                                               '') == 'true' else None
+persistence = redis_persistence() if config.PERSIST_SESSIONS else None
 
 
 def handle_error(update: object, context: CallbackContext):
     logger.error(msg="Exception while handling an update:",
                  exc_info=context.error)
 
-    if FEEDBACK_CHANNEL_ID is not None:
+    if config.FEEDBACK_CHANNEL_ID is not None:
         tb_list = traceback.format_exception(None, context.error,
                                              context.error.__traceback__)
         tb_string = ''.join(tb_list)
@@ -144,25 +121,25 @@ def handle_error(update: object, context: CallbackContext):
                                                     Update) else str(update)
         try:
             context.bot.send_message(
-                chat_id=FEEDBACK_CHANNEL_ID,
+                chat_id=config.FEEDBACK_CHANNEL_ID,
                 text="An exception was raised when handling an update:")
             update_msg = (
                 f"Update:\n<pre>"
                 f"{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False, default=str))}"
                 f"</pre>"[:MAX_MESSAGE_LENGTH])
-            context.bot.send_message(chat_id=FEEDBACK_CHANNEL_ID,
+            context.bot.send_message(chat_id=config.FEEDBACK_CHANNEL_ID,
                                      text=update_msg,
                                      parse_mode=ParseMode.HTML)
             context_msg = (
                 f"context.user_data:\n<pre>"
                 f"{json.dumps(context.user_data, indent=2, ensure_ascii=False, default=str)}"
                 f"</pre>"[:MAX_MESSAGE_LENGTH])
-            context.bot.send_message(chat_id=FEEDBACK_CHANNEL_ID,
+            context.bot.send_message(chat_id=config.FEEDBACK_CHANNEL_ID,
                                      text=context_msg,
                                      parse_mode=ParseMode.HTML)
             error_msg = (f"Error:\n<pre>{html.escape(tb_string)}"
                          f"</pre>"[:MAX_MESSAGE_LENGTH])
-            context.bot.send_message(chat_id=FEEDBACK_CHANNEL_ID,
+            context.bot.send_message(chat_id=config.FEEDBACK_CHANNEL_ID,
                                      text=error_msg,
                                      parse_mode=ParseMode.HTML)
         except Exception as e:
@@ -216,14 +193,14 @@ def show_stats(update: Update, context: CallbackContext) -> int:
 
 
 def pull_conversation():
-    logger.info(f"Loading conversation model from {CONVERSATION_MODEL_URL}")
+    logger.info(f"Loading conversation model from {config.CONVERSATION_MODEL_URL}")
     try:
-        with urllib.request.urlopen(CONVERSATION_MODEL_URL,
+        with urllib.request.urlopen(config.CONVERSATION_MODEL_URL,
                                     context=ssl.create_default_context()) as f:
             return f.read().decode("utf-8")
     except urllib.error.URLError as e:
         logger.error(
-            f"Failed to load conversation from {CONVERSATION_MODEL_URL}",
+            f"Failed to load conversation from {config.CONVERSATION_MODEL_URL}",
             exc_info=e)
         raise e
 
@@ -231,7 +208,7 @@ def pull_conversation():
 def reload_conversation(update: Update, context: CallbackContext) -> int:
     username = update.message.from_user.username
 
-    logger.info(f"Reloading conversation from {CONVERSATION_MODEL_URL}")
+    logger.info(f"Reloading conversation from {config.CONVERSATION_MODEL_URL}")
     try:
         convo_buffer = pull_conversation()
         reset_bot_data(convo_buffer, update)
@@ -289,7 +266,7 @@ def handle_answer(answer, update: Update):
 
 
 def is_admin_user(username: str):
-    return username in ADMIN_USERS
+    return username in config.ADMIN_USERS
 
 
 def choice(update: Update, context: CallbackContext) -> int:
@@ -323,7 +300,7 @@ def search(update: Update, context: CallbackContext, search_terms: str):
         logger.info(f"Freetext search yielded nothing: [{search_terms}]")
         bot_stats.collect_search(user_id, search_terms, 0)
         keyboard_options = []
-        if FEEDBACK_CHANNEL_ID is not None:
+        if config.FEEDBACK_CHANNEL_ID is not None:
             keyboard_options.append([FEEDBACK])
         keyboard_options.extend([[BACK], [START_OVER]])
         update.message.reply_text(
@@ -414,7 +391,7 @@ def build_keyboard_options(keyboard_options_node_name: str = None,
             convo_data.keyboard_by_name(keyboard_options_node_name))
     if show_admin_button:
         current_keyboard_options.appendleft([ADMIN])
-    if show_feedback_button and FEEDBACK_CHANNEL_ID is not None:
+    if show_feedback_button and config.FEEDBACK_CHANNEL_ID is not None:
         current_keyboard_options.append([FEEDBACK])
     if nav_stack_depth >= 2:
         current_keyboard_options.append([BACK])
@@ -425,7 +402,7 @@ def build_keyboard_options(keyboard_options_node_name: str = None,
 
 
 def start_feedback(update: Update, context: CallbackContext):
-    if FEEDBACK_CHANNEL_ID is None:
+    if config.FEEDBACK_CHANNEL_ID is None:
         return start(update, context)
     keyboard_options = [START_OVER]
     update.message.reply_text(PROMPT_FEEDBACK,
@@ -435,7 +412,7 @@ def start_feedback(update: Update, context: CallbackContext):
 
 
 def collect_feedback(update: Update, context: CallbackContext):
-    if FEEDBACK_CHANNEL_ID is None:
+    if config.FEEDBACK_CHANNEL_ID is None:
         return start(update, context)
     if context.user_data["feedback"] is None:
         context.user_data["feedback"] = []
@@ -452,7 +429,7 @@ def collect_feedback(update: Update, context: CallbackContext):
 
 
 def send_feedback(update: Update, context: CallbackContext):
-    if FEEDBACK_CHANNEL_ID is None:
+    if config.FEEDBACK_CHANNEL_ID is None:
         return start(update, context)
     if len(context.user_data["feedback"]) == 0:
         return start(update, context)
@@ -463,7 +440,7 @@ def send_feedback(update: Update, context: CallbackContext):
             effective_user_name = update.effective_user.name
             text = f"Feedback from {effective_user_name}"
             context.bot.send_message(
-                chat_id=FEEDBACK_CHANNEL_ID,
+                chat_id=config.FEEDBACK_CHANNEL_ID,
                 text=text,
                 entities=[
                     MessageEntity(offset=0,
@@ -473,10 +450,10 @@ def send_feedback(update: Update, context: CallbackContext):
                                             effective_user_name, False))
                 ])
         for msg in context.user_data["feedback"]:
-            msg.forward(int(FEEDBACK_CHANNEL_ID))
+            msg.forward(config.FEEDBACK_CHANNEL_ID)
     except telegram.error.TelegramError as e:
         logger.warning("Error when trying to forward feedback to channel %s",
-                       FEEDBACK_CHANNEL_ID,
+                       config.FEEDBACK_CHANNEL_ID,
                        exc_info=e)
 
     bot_stats.collect_interaction(update.message.from_user.id, "Send Feedback")
@@ -489,7 +466,7 @@ def send_feedback(update: Update, context: CallbackContext):
 def conversation_handler(persistent: bool):
     is_admin_filter = reduce(
         lambda a, b: a | b,
-        [Filters.user(username=username) for username in ADMIN_USERS])
+        [Filters.user(username=username) for username in config.ADMIN_USERS])
     return ConversationHandler(
         entry_points=[
             MessageHandler(Filters.chat_type.private & Filters.all, start)
@@ -552,7 +529,7 @@ def conversation_handler(persistent: bool):
 def init_stats():
     global bot_stats
     storage = stats.RedisStorage(redis_instance(BOT_METRICS_DATABASE)) \
-        if os.getenv("PERSIST_METRICS", "") == "true" else stats.MemStorage()
+        if config.PERSIST_METRICS else stats.MemStorage()
     bot_stats = stats.Stats(storage)
 
 
@@ -563,20 +540,19 @@ def reset_user_state(context: CallbackContext):
 
 
 def start_bot():
-    updater = Updater(token=API_KEY, persistence=persistence, use_context=True)
+    updater = Updater(token=config.API_KEY, persistence=persistence, use_context=True)
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(conversation_handler(persistence is not None))
     dispatcher.add_error_handler(handle_error)
 
-    if os.getenv("USE_WEBHOOK", "") == "true":
-        port = int(os.environ.get("PORT", 5000))
-        logger.log(logging.INFO, f"Starting webhook at port {port}")
+    if config.USE_WEBHOOK:
+        logger.log(logging.INFO, f"Starting webhook at port {config.PORT}")
         updater.start_webhook(
             listen="0.0.0.0",
-            port=int(port),
-            url_path=API_KEY,
-            webhook_url=f"{WEBHOOK_URL}/{API_KEY}",
+            port=config.PORT,
+            url_path=config.API_KEY,
+            webhook_url=f"{config.WEBHOOK_URL}/{config.API_KEY}",
         )
     else:
         updater.start_polling()
@@ -585,7 +561,7 @@ def start_bot():
 
 
 def main():
-    logger.info(f"Admin users: {ADMIN_USERS}")
+    logger.info(f"Admin users: {config.ADMIN_USERS}")
     reset_bot_data(pull_conversation())
     init_stats()
     start_bot()
