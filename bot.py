@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from collections import deque
+from conversation_data import ConversationData
 from bot_redis_persistence import RedisPersistence
 from functools import reduce
-from node_util import visit_node
 from morpho_index import MorphoIndex
 from telegram import (
     InlineKeyboardButton,
@@ -22,7 +22,6 @@ from telegram.ext import (
     MessageHandler,
     Updater,
 )
-from typing import Dict, Set
 from urllib.parse import urlparse
 import google.protobuf.text_format as text_format
 import html
@@ -44,9 +43,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 bot_stats: stats.Stats = None
 morpho_index: MorphoIndex = None
+convo_data: ConversationData = None
 
 CONVERSATION_MODEL_LOCAL_URL = "file:conversation_tree.textproto"
-CONVERSATION_MODEL_URL = os.getenv("CONVERSATION_MODEL_URL", CONVERSATION_MODEL_LOCAL_URL)
+CONVERSATION_MODEL_URL = os.getenv("CONVERSATION_MODEL_URL",
+                                   CONVERSATION_MODEL_LOCAL_URL)
 DEFAULT_WEBHOOK_URL = "https://telegram-bot-help-ua-ch.herokuapp.com"
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
 API_KEY = os.getenv('TELEGRAM_BOT_API_KEY')
@@ -91,7 +92,6 @@ ADMIN_USERS = [
     "Zygimantas",
 ]
 
-CONVERSATION_DATA = {}
 PHOTO_CACHE = {}
 BOT_PERSISTENCE_DATABASE, BOT_METRICS_DATABASE = range(2)
 
@@ -247,17 +247,12 @@ def reload_conversation(update: Update, context: CallbackContext) -> int:
 
 
 def reset_bot_data(conversation_textproto: str, update: Update = None):
-    global CONVERSATION_DATA, morpho_index
+    global convo_data, morpho_index
     conversation = text_format.Parse(conversation_textproto,
                                      conversation_proto.Conversation())
     morpho_index = MorphoIndex(conversation)
 
-    # Avoid bringing CONVERSATION_DATA into an inconsistent state.
-    new_conversation_data = {}
-    new_conversation_data["node_by_name"] = create_node_by_name(conversation)
-    new_conversation_data["keyboard_by_name"] = create_keyboard_options(
-        new_conversation_data["node_by_name"])
-    CONVERSATION_DATA = new_conversation_data
+    convo_data = ConversationData(conversation)
     if update:
         update.message.reply_text("Диалог успешно перезагружен.")
 
@@ -303,7 +298,7 @@ def choice(update: Update, context: CallbackContext) -> int:
 
     user_data = context.user_data
     requested_node_name = update.message.text
-    if requested_node_name not in CONVERSATION_DATA["node_by_name"]:
+    if convo_data.node_by_name(requested_node_name) is None:
         return search(update, context, requested_node_name)
     display_node_name = requested_node_name
     keyboard_node_name = user_data["current_node"]
@@ -368,7 +363,7 @@ def update_state_and_send_conversation(update: Update,
         display_node_name = keyboard_node_name
 
     user_data = context.user_data
-    if display_node_name in CONVERSATION_DATA["keyboard_by_name"]:
+    if convo_data.keyboard_by_name(display_node_name) is not None:
         try:
             existing_index = user_data["nav_stack"].index(display_node_name)
             user_data["nav_stack"] = user_data["nav_stack"][:existing_index]
@@ -381,7 +376,7 @@ def update_state_and_send_conversation(update: Update,
     user_id = update.message.from_user.id
     bot_stats.collect_interaction(user_id, display_node_name)
 
-    display_node = CONVERSATION_DATA["node_by_name"].get(display_node_name)
+    display_node = convo_data.node_by_name(display_node_name)
     if not display_node:
         current_keyboard = ReplyKeyboardMarkup([[START_OVER]],
                                                one_time_keyboard=True)
@@ -416,7 +411,7 @@ def build_keyboard_options(keyboard_options_node_name: str = None,
     current_keyboard_options = deque()
     if keyboard_options_node_name is not None:
         current_keyboard_options.extend(
-            CONVERSATION_DATA["keyboard_by_name"][keyboard_options_node_name])
+            convo_data.keyboard_by_name(keyboard_options_node_name))
     if show_admin_button:
         current_keyboard_options.appendleft([ADMIN])
     if show_feedback_button and FEEDBACK_CHANNEL_ID is not None:
@@ -442,8 +437,8 @@ def start_feedback(update: Update, context: CallbackContext):
 def collect_feedback(update: Update, context: CallbackContext):
     if FEEDBACK_CHANNEL_ID is None:
         return start(update, context)
-    if  context.user_data["feedback"] is None:
-         context.user_data["feedback"] = []
+    if context.user_data["feedback"] is None:
+        context.user_data["feedback"] = []
     context.user_data["feedback"].append(update.message)
 
     keyboard_options = []
@@ -587,31 +582,6 @@ def start_bot():
         updater.start_polling()
 
     updater.idle()
-
-
-def create_node_by_name(conversation: conversation_proto.Conversation):
-    node_by_name = {}
-
-    def updater(node):
-        node_by_name[node.name] = node
-
-    for node in conversation.node:
-        visit_node(node, updater)
-    return node_by_name
-
-
-def create_keyboard_options(node_by_name):
-    keyboard_by_name = {}
-    for name in node_by_name:
-        if len(node_by_name[name].link) > 0:
-            options = []
-            for link in node_by_name[name].link:
-                if len(link.name) > 0:
-                    options.append([link.name])
-                elif len(link.branch.name) > 0:
-                    options.append([link.branch.name])
-            keyboard_by_name[name] = options
-    return keyboard_by_name
 
 
 def main():
