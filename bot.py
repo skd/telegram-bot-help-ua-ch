@@ -22,7 +22,6 @@ from telegram.ext import (
     MessageHandler,
     Updater,
 )
-from typing import Dict, Set
 from urllib.parse import urlparse
 import google.protobuf.text_format as text_format
 import html
