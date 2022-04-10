@@ -58,6 +58,7 @@ if FEEDBACK_CHANNEL_ID is not None:
 
 CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK, ADMIN_MENU, SEARCH_FAILED = \
     range(5)
+TOP_N_SEARCH_RESULTS = 3
 
 BACK = "Назад"
 START_OVER = "Вернуться в начало"
@@ -313,7 +314,7 @@ def search(update: Update, context: CallbackContext, search_terms: str):
     user_id = update.message.from_user.id
     if search_results:
         buttons = []
-        for result in search_results:
+        for result in search_results[:TOP_N_SEARCH_RESULTS]:
             buttons.append([
                 InlineKeyboardButton(text=result[0],
                                      callback_data=convo_data.node_by_name(
