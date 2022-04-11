@@ -26,17 +26,19 @@ node {
   answer { photo: "safety3.jpg" }
   answer { photo: "safety4.jpg" }
   answer { photo: "safety5.jpg" }
-  answer { links { 
-    text: "Больше информации"
-    url {
-      text: "Проверить хозяина жилья"
-      url: "https://icanhelp.host"
-    }
-    url {
-      text: "Бот о безопасности для женщин"
-      url: "https://t.me/safeabroad_bot"
-    }
-  } }
+  answer { 
+    links { 
+      text: "Больше информации"
+      url {
+        text: "Проверить хозяина жилья"
+        url: "https://icanhelp.host"
+      }
+      url {
+        text: "Бот о безопасности для женщин"
+        url: "https://t.me/safeabroad_bot"
+      }
+    } 
+  }
   answer { text: "Вот чем я могу сегодня вам помочь. Выберите пункт:" }
   link { name: "🏠 Жилье" }
   link { name: "🛂 Регистрация и юридический статус" }
