@@ -28,7 +28,6 @@ message ConversationLink {
 
 message ConversationNode {
     string name = 1;
-    int32 id = 6; // Leave empty, field to be filled in automatically.
     repeated string alt_name = 2;
     repeated string keyword = 3;
 

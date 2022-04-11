@@ -317,8 +317,7 @@ def search(update: Update, context: CallbackContext, search_terms: str):
         for result in search_results[:TOP_N_SEARCH_RESULTS]:
             buttons.append([
                 InlineKeyboardButton(text=result.node_label,
-                                     callback_data=convo_data.node_by_name(
-                                         result.node_name).id)
+                                     callback_data=hash(result.node_name))
             ])
         reply_markup = InlineKeyboardMarkup(buttons)
 
@@ -351,7 +350,7 @@ def search_again(update: Update, context: CallbackContext) -> int:
 
 
 def on_button(update: Update, context: CallbackContext):
-    new_node = convo_data.node_by_id(update.callback_query.data)
+    new_node = convo_data.node_by_hash(update.callback_query.data)
     if new_node is None:
         return
     current_node = context.user_data["current_node"]
