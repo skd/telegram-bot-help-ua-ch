@@ -21,10 +21,9 @@ class RedisPersistence(BasePersistence):
     '''
 
     def __init__(self, redis: Redis, key: bytes, on_flush: bool = False):
-        super().__init__(
-            store_user_data=True,
-            store_chat_data=True,
-            store_bot_data=True)
+        super().__init__(store_user_data=True,
+                         store_chat_data=True,
+                         store_bot_data=True)
         self.redis: Redis = redis
         self.on_flush = on_flush
         self.user_data: Optional[DefaultDict[int, Dict]] = None
@@ -47,7 +46,8 @@ class RedisPersistence(BasePersistence):
                 self.conversations = data['conversations']
                 return
         except Exception as exc:
-            logger.error("Failed to load bot state from Redis, discarding.", exc_info = exc)
+            logger.error("Failed to load bot state from Redis, discarding.",
+                         exc_info=exc)
         # Set defaults in case of an exception or a missing pickle.
         self.conversations = dict()
         self.user_data = defaultdict(dict)
@@ -62,7 +62,8 @@ class RedisPersistence(BasePersistence):
             'bot_data': self.bot_data,
         }
         pickle_data = pickle.dumps(data)
-        data_bytes = self.fernet.encrypt(pickle_data) if self.fernet else pickle_data
+        data_bytes = self.fernet.encrypt(
+            pickle_data) if self.fernet else pickle_data
         self.redis.set('TelegramBotPersistence', data_bytes)
 
     def get_user_data(self) -> DefaultDict[int, Dict[Any, Any]]:
@@ -87,9 +88,11 @@ class RedisPersistence(BasePersistence):
         '''Returns the conversations from the pickle on Redis if it exsists or an empty dict.'''
         if self.conversations is None:
             self.load_redis()
-        return self.conversations.get(name, {}).copy()  # type: ignore[union-attr]
+        return self.conversations.get(name,
+                                      {}).copy()  # type: ignore[union-attr]
 
-    def update_conversation(self, name: str, key: Tuple[int, ...], new_state: Optional[object]) -> None:
+    def update_conversation(self, name: str, key: Tuple[int, ...],
+                            new_state: Optional[object]) -> None:
         '''Will update the conversations for the given handler and depending on :attr:`on_flush` save the pickle on Redis.'''
         if self.conversations is None:
             self.conversations = dict()

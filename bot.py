@@ -316,9 +316,9 @@ def search(update: Update, context: CallbackContext, search_terms: str):
         buttons = []
         for result in search_results[:TOP_N_SEARCH_RESULTS]:
             buttons.append([
-                InlineKeyboardButton(text=result[0],
+                InlineKeyboardButton(text=result.node_label,
                                      callback_data=convo_data.node_by_name(
-                                         result[0]).id)
+                                         result.node_name).id)
             ])
         reply_markup = InlineKeyboardMarkup(buttons)
 

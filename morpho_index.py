@@ -6,7 +6,7 @@ import pymorphy2
 import re
 
 from multiset import Multiset
-from node_util import visit_node
+from node_util import visit_node_with_branch_parent
 from operator import itemgetter
 from typing import Dict, List, Set, Tuple
 
@@ -23,8 +23,10 @@ MORPH_RU = pymorphy2.MorphAnalyzer()
 MORPH_UK = pymorphy2.MorphAnalyzer(lang='uk')
 
 logger = logging.getLogger(__name__)
+parent_name_by_branch_name = {}
 
 WordTag = namedtuple("WordTag", ["word", "part_of_speech"])
+SearchResult = namedtuple("SearchResult", ["node_name", "score", "node_label"])
 
 
 def normalize_word(word: str):
@@ -70,6 +72,8 @@ def word_tags(word: str) -> List[WordTag]:
         result.append(word_tag_for_parse(parse_ru))
     if not result and parse_uk:
         result.append(word_tag_for_parse(parse_uk))
+    if not result:
+        result.append(WordTag(word, UNKNOWN_POS))
 
     return result
 
@@ -101,9 +105,12 @@ class MorphoIndex:
                         wt, Multiset())
                     node_set.add(node.name, weight)
 
-        def process_node(node: conversation_proto.ConversationNode):
+        def process_node(node: conversation_proto.ConversationNode,
+                         branch_parent: conversation_proto.ConversationNode):
             if node.name in IGNORED_NODES:
                 return
+            if branch_parent:
+                parent_name_by_branch_name[node.name] = branch_parent.name
 
             # Drastically boost search terms found in the node name.
             process_text(node, node.name, NODE_NAME_TERM_SCORE)
@@ -120,13 +127,13 @@ class MorphoIndex:
                         process_text(node, url.label, 1)
 
         for node in conversation.node:
-            visit_node(node, process_node)
+            visit_node_with_branch_parent(node, process_node)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 "node_counts_by_word_tag:\n%s",
                 pprint.pformat(self._node_counts_by_word_tag, indent=2))
 
-    def search(self, text: str) -> List[Tuple[str, int]]:
+    def search(self, text: str) -> List[SearchResult]:
         words = re.split(SPLIT_REGEX, text)
         result_multiset = Multiset()
         found_word_count_by_node_name = {}
@@ -142,8 +149,14 @@ class MorphoIndex:
                     result_multiset.add(item[0], item[1])
 
         # Boost nodes having hits for multiple words from the query.
-        nodes_and_scores = [(node_name, count * found_word_count_by_node_name[node_name]) \
-         for (node_name, count) in result_multiset.items()]
-        nodes_and_scores.sort(key=itemgetter(1), reverse=True)
-        logger.debug(f"Search: [{text}] -> {nodes_and_scores}")
-        return nodes_and_scores
+        search_results = list(
+            map(
+                lambda tuple: SearchResult(
+                    tuple[0], tuple[1], tuple[0]
+                    if tuple[0] not in parent_name_by_branch_name else
+                    f"{parent_name_by_branch_name[tuple[0]]} > {tuple[0]}"),
+                [(node_name, count * found_word_count_by_node_name[node_name])
+                 for (node_name, count) in result_multiset.items()]))
+        search_results.sort(key=itemgetter(1), reverse=True)
+        logger.debug(f"Search: [{text}] -> {search_results}")
+        return search_results
