@@ -30,11 +30,11 @@ node {
     links { 
       text: "Больше информации"
       url {
-        text: "Проверить хозяина жилья"
+        label: "Проверить хозяина жилья"
         url: "https://icanhelp.host"
       }
       url {
-        text: "Бот о безопасности для женщин"
+        label: "Бот о безопасности для женщин"
         url: "https://t.me/safeabroad_bot"
       }
     } 
