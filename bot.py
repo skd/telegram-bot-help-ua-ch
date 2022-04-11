@@ -17,6 +17,7 @@ from telegram import (
 )
 from telegram.ext import (
     CallbackContext,
+    CallbackQueryHandler,
     ConversationHandler,
     Filters,
     MessageHandler,
@@ -47,6 +48,7 @@ convo_data: ConversationData = None
 
 CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK, ADMIN_MENU, SEARCH_FAILED = \
     range(5)
+TOP_N_SEARCH_RESULTS = 3
 
 BACK = "Назад"
 START_OVER = "Вернуться в начало"
@@ -62,7 +64,7 @@ EMPTY_SEARCH_RESULTS = (
     "введите новый запрос или выберите пункт меню.\n\nЕсли у нас нет нужной "
     "статьи и Google тоже не может ответить на ваш вопрос, вы можете сообщить "
     "нам об этом, нажав кнопку \"Оставить отзыв боту\".")
-SEARCH_RESULT_HEADER_TEMPLATE = "По вашему запросу найдена статья \"{}\":"
+SEARCH_RESULT_HEADER = "По вашему запросу найдены статьи:"
 DATA_REFRESHED = "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало."
 PROMPT_REPLY = "Выберите пункт"
 ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начать сначала."
@@ -235,26 +237,26 @@ def reset_bot_data(conversation_textproto: str, update: Update = None):
 
 
 def handle_answer(answer, update: Update):
+    message = update.message if update.message else update.callback_query.message
     if len(answer.text) > 0:
-        update.message.reply_text(answer.text, parse_mode=ParseMode.HTML)
+        message.reply_text(answer.text, parse_mode=ParseMode.HTML)
     elif len(answer.links.text) > 0:
         links = answer.links
         buttons = []
         for url in links.url:
             buttons.append([InlineKeyboardButton(url.label, url=url.url)])
         reply_markup = InlineKeyboardMarkup(buttons)
-        update.message.reply_text(
+        message.reply_text(
             links.text,
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup,
         )
     elif len(answer.venue.title) > 0:
-        update.message.reply_venue(
-            latitude=answer.venue.lat,
-            longitude=answer.venue.lon,
-            title=answer.venue.title,
-            address=answer.venue.address,
-            google_place_id=answer.venue.google_place_id)
+        message.reply_venue(latitude=answer.venue.lat,
+                            longitude=answer.venue.lon,
+                            title=answer.venue.title,
+                            address=answer.venue.address,
+                            google_place_id=answer.venue.google_place_id)
     elif len(answer.photo) > 0:
         photob = None
         if answer.photo in PHOTO_CACHE:
@@ -262,7 +264,7 @@ def handle_answer(answer, update: Update):
         with open("photo/%s" % answer.photo, "rb") as photo_file:
             photob = photo_file.read()
             PHOTO_CACHE[answer.photo] = photob
-        update.message.reply_photo(photob)
+        message.reply_photo(photob)
 
 
 def is_admin_user(username: str):
@@ -288,13 +290,17 @@ def search(update: Update, context: CallbackContext, search_terms: str):
     search_results = morpho_index.search(search_terms)
     user_id = update.message.from_user.id
     if search_results:
-        display_node_name = search_results[0][0]
-        update.message.reply_text(
-            SEARCH_RESULT_HEADER_TEMPLATE.format(display_node_name))
+        buttons = []
+        for result in search_results[:TOP_N_SEARCH_RESULTS]:
+            buttons.append([
+                InlineKeyboardButton(text=result.node_label,
+                                     callback_data=hash(result.node_name))
+            ])
+        reply_markup = InlineKeyboardMarkup(buttons)
+
+        update.message.reply_text(SEARCH_RESULT_HEADER,
+                                  reply_markup=reply_markup)
         bot_stats.collect_search(user_id, search_terms, len(search_results))
-        update_state_and_send_conversation(update, context,
-                                           context.user_data["current_node"],
-                                           display_node_name)
         return CHOOSING
     else:
         logger.info(f"Freetext search yielded nothing: [{search_terms}]")
@@ -318,6 +324,19 @@ def search_failed_back(update: Update, context: CallbackContext) -> int:
 
 def search_again(update: Update, context: CallbackContext) -> int:
     return search(update, context, update.message.text)
+
+
+def on_button(update: Update, context: CallbackContext):
+    new_node = convo_data.node_by_hash(update.callback_query.data)
+    if new_node is None:
+        return
+    current_node = context.user_data["current_node"]
+    context.user_data["current_node"] = new_node.name
+    update.callback_query.answer()
+    update.callback_query.message.reply_text(f"<b>{new_node.name}</b>",
+                                             parse_mode=ParseMode.HTML)
+    update_state_and_send_conversation(update, context, current_node,
+                                       new_node.name)
 
 
 def update_state_and_send_conversation(update: Update,
@@ -350,8 +369,8 @@ def update_state_and_send_conversation(update: Update,
         keyboard_node_name = display_node_name
     user_data["current_node"] = keyboard_node_name
 
-    user_id = update.message.from_user.id
-    bot_stats.collect_interaction(user_id, display_node_name)
+    from_user = update.message.from_user if update.message else update.callback_query.from_user
+    bot_stats.collect_interaction(from_user.id, display_node_name)
 
     display_node = convo_data.node_by_name(display_node_name)
     if not display_node:
@@ -366,19 +385,20 @@ def update_state_and_send_conversation(update: Update,
         keyboard_node_name,
         nav_stack_depth,
         show_feedback_button=nav_stack_depth <= 1,
-        show_admin_button=(nav_stack_depth <= 1 and is_admin_user(
-            update.message.from_user.username)))
+        show_admin_button=(nav_stack_depth <= 1
+                           and is_admin_user(from_user.username)))
 
     for answer in display_node.answer[:-1]:
         handle_answer(answer, update)
     last_answer = display_node.answer[-1]
+    message = update.message if update.message else update.callback_query.message
     if len(last_answer.text) == 0:
         handle_answer(last_answer, update)
-        update.message.reply_text(PROMPT_REPLY, reply_markup=current_keyboard)
+        message.reply_text(PROMPT_REPLY, reply_markup=current_keyboard)
     else:
-        update.message.reply_text(last_answer.text,
-                                  parse_mode=ParseMode.HTML,
-                                  reply_markup=current_keyboard)
+        message.reply_text(last_answer.text,
+                           parse_mode=ParseMode.HTML,
+                           reply_markup=current_keyboard)
 
 
 def build_keyboard_options(keyboard_options_node_name: str = None,
@@ -544,6 +564,7 @@ def start_bot():
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(conversation_handler(persistence is not None))
+    dispatcher.add_handler(CallbackQueryHandler(on_button))
     dispatcher.add_error_handler(handle_error)
 
     if config.USE_WEBHOOK:

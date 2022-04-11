@@ -4,6 +4,18 @@ from typing import Dict, List
 import proto.conversation_pb2 as conversation_proto
 
 
+def _create_node_by_hash(conversation: conversation_proto.Conversation
+) -> Dict[str, conversation_proto.ConversationNode]:
+    node_by_hash = dict()
+
+    def updater(node):
+        node_by_hash[str(hash(node.name))] = node
+
+    for node in conversation.node:
+        visit_node(node, updater)
+    return node_by_hash
+
+
 def _create_node_by_name(
     conversation: conversation_proto.Conversation
 ) -> Dict[str, conversation_proto.ConversationNode]:
@@ -35,8 +47,18 @@ def _create_keyboard_options(node_by_name) -> Dict[str, List[List[str]]]:
 class ConversationData:
 
     def __init__(self, conversation: conversation_proto.Conversation):
-        self._node_by_name: Dict[str, conversation_proto.ConversationNode] = _create_node_by_name(conversation)
-        self._keyboard_by_name: Dict[str, List[List[str]]] = _create_keyboard_options(self._node_by_name)
+        self._node_by_hash: Dict[
+            str, conversation_proto.ConversationNode] = _create_node_by_hash(
+                conversation)
+        self._node_by_name: Dict[
+            str, conversation_proto.ConversationNode] = _create_node_by_name(
+                conversation)
+        self._keyboard_by_name: Dict[
+            str,
+            List[List[str]]] = _create_keyboard_options(self._node_by_name)
+
+    def node_by_hash(self, hash_value: int) -> conversation_proto.ConversationNode:
+        return self._node_by_hash.get(str(hash_value))
 
     def node_by_name(self, name: str) -> conversation_proto.ConversationNode:
         return self._node_by_name.get(name)
