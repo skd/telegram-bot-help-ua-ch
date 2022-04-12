@@ -885,10 +885,6 @@ node {
         label: "https://remoteukraine.org"
         url: "https://remoteukraine.org"
       }
-      url {
-        label: "CANADEM recruiting RU, UA, PL speakers"
-        url: "https://reliefweb.int/job/3826886/canadem-recruiting-its-response-ukraine-russian-ukrainian-polish-speakers"
-      }
     }
   }
 }
