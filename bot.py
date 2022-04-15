@@ -65,6 +65,7 @@ EMPTY_SEARCH_RESULTS = (
     "статьи и Google тоже не может ответить на ваш вопрос, вы можете сообщить "
     "нам об этом, нажав кнопку \"Оставить отзыв боту\".")
 SEARCH_RESULT_HEADER = "По вашему запросу найдены статьи:"
+SINGLE_SEARCH_RESULT_HEADER_TEMPLATE = "По вашему запросу найдена статья \"{}\":"
 DATA_REFRESHED = "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало."
 PROMPT_REPLY = "Выберите пункт"
 ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начать сначала."
@@ -290,17 +291,24 @@ def search(update: Update, context: CallbackContext, search_terms: str):
     search_results = morpho_index.search(search_terms)
     user_id = update.message.from_user.id
     if search_results:
-        buttons = []
-        for result in search_results[:TOP_N_SEARCH_RESULTS]:
-            buttons.append([
-                InlineKeyboardButton(text=result.node_label,
-                                     callback_data=hash(result.node_name))
-            ])
-        reply_markup = InlineKeyboardMarkup(buttons)
-
-        update.message.reply_text(SEARCH_RESULT_HEADER,
-                                  reply_markup=reply_markup)
         bot_stats.collect_search(user_id, search_terms, len(search_results))
+        if len(search_results) == 1:
+            display_node_name = search_results[0][0]
+            update.message.reply_text(
+                SINGLE_SEARCH_RESULT_HEADER_TEMPLATE.format(display_node_name))
+            update_state_and_send_conversation(update, context,
+                                               context.user_data["current_node"],
+                                               display_node_name)
+        else:
+            buttons = []
+            for result in search_results[:TOP_N_SEARCH_RESULTS]:
+                buttons.append([
+                    InlineKeyboardButton(text=result.node_label,
+                                         callback_data=hash(result.node_name))
+                ])
+            reply_markup = InlineKeyboardMarkup(buttons)
+            update.message.reply_text(SEARCH_RESULT_HEADER,
+                                      reply_markup=reply_markup)
         return CHOOSING
     else:
         logger.info(f"Freetext search yielded nothing: [{search_terms}]")
