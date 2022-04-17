@@ -280,6 +280,8 @@ node {
   link {
     branch {
       name: "AG (Aargau)"
+      alt_name: "Ааргау"
+      alt_name: "Аргау"
       answer {
         venue {
           lat: 47.5792291693438
@@ -295,6 +297,7 @@ node {
   link {
     branch {
       name: "AI (Appenzell Innerrhoden)"
+      alt_name: "Аппенцель Иннерроден"
       answer {
         venue {
           lat: 47.371310412836934
@@ -310,6 +313,7 @@ node {
   link {
     branch {
       name: "AR (Appenzell Ausserrhoden)"
+      alt_name: "Аппенцель Ауссерроден"
       answer {
         venue {
           lat: 47.371310412836934
@@ -325,6 +329,7 @@ node {
   link {
     branch {
       name: "BE (Bern)"
+      alt_name: "Берн"
       answer {
         venue {
           lat: 46.932064678664645
@@ -340,6 +345,7 @@ node {
   link {
     branch {
       name: "BL (Basel-Landschaft)"
+      alt_name: "Базель Ландшафт"
       answer {
         venue {
           lat: 47.5792291693438
@@ -355,6 +361,7 @@ node {
   link {
     branch {
       name: "BS (Basel-Stadt)"
+      alt_name: "Базель Штадт"
       answer {
         venue {
           lat: 47.5792291693438
@@ -370,6 +377,8 @@ node {
   link {
     branch {
       name: "FR (Fribourg)"
+      alt_name: "Фрибур"
+      alt_name: "Фрайбург"
       answer {
         venue {
           lat: 46.947444880258814
@@ -385,6 +394,7 @@ node {
   link {
     branch {
       name: "GE (Geneve)"
+      alt_name: "Женева"
       answer {
         venue {
           lat: 46.947444880258814
@@ -400,6 +410,7 @@ node {
   link {
     branch {
       name: "GL (Glarus)"
+      alt_name: "Гларус"
       answer {
         venue {
           lat: 47.371310412836934
@@ -415,6 +426,8 @@ node {
   link {
     branch {
       name: "GR (Graubunden)"
+      alt_name: "Граубюнден"
+      alt_name: "Граубунден"
       answer {
         venue {
           lat: 47.371310412836934
@@ -430,6 +443,7 @@ node {
   link {
     branch {
       name: "JU (Jura)"
+      alt_name: "Юра"
       answer {
         venue {
           lat: 46.947444880258814
@@ -445,6 +459,7 @@ node {
   link {
     branch {
       name: "LU (Luzern)"
+      alt_name: "Люцерн"
       answer {
         venue {
           lat: 45.831888334317675
@@ -460,6 +475,8 @@ node {
   link {
     branch {
       name: "NE (Neuchatel)"
+      alt_name: "Невшатель"
+      alt_name: "Нойшатель"
       answer {
         venue {
           lat: 46.947444880258814
@@ -475,6 +492,7 @@ node {
   link {
     branch {
       name: "NW (Nidwalden)"
+      alt_name: "Нидвальден"
       answer {
         venue {
           lat: 45.831888334317675
@@ -490,6 +508,7 @@ node {
   link {
     branch {
       name: "OW (Obwalden)"
+      alt_name: "Обвальден"
       answer {
         venue {
           lat: 45.831888334317675
@@ -505,6 +524,9 @@ node {
   link {
     branch {
       name: "SG (St. Gallen)"
+      alt_name: "Санкт Галлен"
+      keyword: "Сент"
+      keyword: "Гален"
       answer {
         venue {
           lat: 47.371310412836934
@@ -520,6 +542,8 @@ node {
   link {
     branch {
       name: "SH (Schaffhausen)"
+      alt_name: "Шаффхаузен"
+      alt_name: "Шафхаузен"
       answer {
         venue {
           lat: 47.371310412836934
@@ -535,6 +559,7 @@ node {
   link {
     branch {
       name: "SO (Solothurn)"
+      alt_name: "Золотурн"
       answer {
         venue {
           lat: 47.5792291693438
@@ -550,6 +575,7 @@ node {
   link {
     branch {
       name: "SZ (Schwyz)"
+      alt_name: "Швиц"
       answer {
         venue {
           lat: 45.831888334317675
@@ -565,6 +591,7 @@ node {
   link {
     branch {
       name: "TG (Thurgau)"
+      alt_name: "Тургау"
       answer {
         venue {
           lat: 47.371310412836934
@@ -580,6 +607,7 @@ node {
   link {
     branch {
       name: "TI (Ticino)"
+      alt_name: "Тичино"
       answer {
         venue {
           lat: 45.831888334317675
@@ -595,6 +623,7 @@ node {
   link {
     branch {
       name: "UR (Uri)"
+      alt_name: "Ури"
       answer {
         venue {
           lat: 45.831888334317675
@@ -610,6 +639,7 @@ node {
   link {
     branch {
       name: "VD (Vaud)"
+      alt_name: "Во"
       answer {
         venue {
           lat: 46.947444880258814
@@ -625,6 +655,7 @@ node {
   link {
     branch {
       name: "VS (Valais)"
+      alt_name: "Вале"
       answer {
         venue {
           lat: 46.947444880258814
@@ -640,6 +671,7 @@ node {
   link {
     branch {
       name: "ZH (Zurich)"
+      alt_name: "Цюрих"
       answer { text: "Если у вас уже есть, где жить, то вы можете зарегистрироваться на" }
       answer {
         venue {
@@ -670,6 +702,7 @@ node {
   link {
     branch {
       name: "ZG (Zug)"
+      alt_name: "Цуг"
       answer {
         venue {
           lat: 45.831888334317675
@@ -712,6 +745,7 @@ node {
   name: "Сервисы поиска бесплатного жилья"
   alt_name: "Сервіси пошуку безкоштовного житла"
   keyword: "подыскать"
+  keyword: "найти"
   answer {
     links {
       text:
@@ -1012,7 +1046,7 @@ node {
         url: "https://t.me/UASchweiz/11121"
       }
       url {
-        label: "ToGoodToGo: дешевая еда в конце дня"
+        label: "TooGoodToGo: дешевая еда в конце дня"
         url: "https://toogoodtogo.ch/de-ch"
       }
       url {
@@ -1128,6 +1162,7 @@ node {
   name: "🧑‍🎓 Образование"
   alt_name: "Освіта, школа, університет"
   keyword: "навчання"
+  keyword: "учеба"
   answer {
     links {
       text:
@@ -1300,6 +1335,10 @@ node {
       url {
         label: "Цуг: ZugUkraine"
         url: "https://t.me/ZugUkraine"
+      }
+      url {
+        label: "Цуг: Чат для мам (+nOrlLn6sh2tjM2Y0)"
+        url: "https://t.me/+nOrlLn6sh2tjM2Y0"
       }
       url {
         label: "Цюрих: zh_helps_UArefugee"
