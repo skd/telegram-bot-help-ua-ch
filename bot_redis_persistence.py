@@ -2,12 +2,12 @@ import logging
 import pickle
 from collections import defaultdict
 from copy import deepcopy
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet
 from typing import Any, DefaultDict, Dict, Optional, Tuple
 from redis import Redis
 
 from telegram.ext import BasePersistence
-from telegram.ext.utils.types import CDCData, ConversationDict
+from telegram.ext.utils.types import ConversationDict
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,9 @@ class RedisPersistence(BasePersistence):
     '''
         Using Redis to make the bot persistent.
         This is a patched version of redispersistence with some code fixes, the
-        ConversationDict import package fixed, and the serialized state encrypted.
-        Package fix posted in https://github.com/Mortafix/RedisPersistence/pull/2.
+        ConversationDict import package fixed, and the serialized state
+        encrypted. Package fix posted in
+        https://github.com/Mortafix/RedisPersistence/pull/2.
     '''
 
     def __init__(self, redis: Redis, key: bytes, on_flush: bool = False):
@@ -41,7 +42,7 @@ class RedisPersistence(BasePersistence):
                 data = pickle.loads(data_bytes)
                 self.user_data = defaultdict(dict, data['user_data'])
                 self.chat_data = defaultdict(dict, data['chat_data'])
-                # For backwards compatibility with files not containing bot data
+                # For backwards compatibility with inputs without bot data
                 self.bot_data = data.get('bot_data', {})
                 self.conversations = data['conversations']
                 return
@@ -67,25 +68,37 @@ class RedisPersistence(BasePersistence):
         self.redis.set('TelegramBotPersistence', data_bytes)
 
     def get_user_data(self) -> DefaultDict[int, Dict[Any, Any]]:
-        '''Returns the user_data from the pickle on Redis if it exists or an empty :obj:`defaultdict`.'''
+        '''
+            Returns the user_data from the pickle on Redis if it exists or
+            an empty :obj:`defaultdict`.
+        '''
         if self.user_data is None:
             self.load_redis()
         return deepcopy(self.user_data)  # type: ignore[arg-type]
 
     def get_chat_data(self) -> DefaultDict[int, Dict[Any, Any]]:
-        '''Returns the chat_data from the pickle on Redis if it exists or an empty :obj:`defaultdict`.'''
+        '''
+            Returns the chat_data from the pickle on Redis if it exists or
+            an empty :obj:`defaultdict`.
+        '''
         if self.chat_data is None:
             self.load_redis()
         return deepcopy(self.chat_data)  # type: ignore[arg-type]
 
     def get_bot_data(self) -> Dict[Any, Any]:
-        '''Returns the bot_data from the pickle on Redis if it exists or an empty :obj:`dict`.'''
+        '''
+            Returns the bot_data from the pickle on Redis if it exists or
+            an empty :obj:`dict`.
+        '''
         if self.bot_data is None:
             self.load_redis()
         return deepcopy(self.bot_data)  # type: ignore[arg-type]
 
     def get_conversations(self, name: str) -> ConversationDict:
-        '''Returns the conversations from the pickle on Redis if it exsists or an empty dict.'''
+        '''
+            Returns the conversations from the pickle on Redis if it exsists or
+            an empty dict.
+        '''
         if self.conversations is None:
             self.load_redis()
         return self.conversations.get(name,
@@ -93,7 +106,10 @@ class RedisPersistence(BasePersistence):
 
     def update_conversation(self, name: str, key: Tuple[int, ...],
                             new_state: Optional[object]) -> None:
-        '''Will update the conversations for the given handler and depending on :attr:`on_flush` save the pickle on Redis.'''
+        '''
+            Will update the conversations for the given handler and depending
+            on :attr:`on_flush` save the pickle on Redis.
+        '''
         if self.conversations is None:
             self.conversations = dict()
         if self.conversations.setdefault(name, {}).get(key) == new_state:
@@ -103,7 +119,10 @@ class RedisPersistence(BasePersistence):
             self.dump_redis()
 
     def update_user_data(self, user_id: int, data: Dict) -> None:
-        '''Will update the user_data and depending on :attr:`on_flush` save the pickle on Redis.'''
+        '''
+            Will update the user_data and depending on :attr:`on_flush` save
+            the pickle on Redis.
+        '''
         if self.user_data is None:
             self.user_data = defaultdict(dict)
         if self.user_data.get(user_id) == data:
@@ -113,7 +132,10 @@ class RedisPersistence(BasePersistence):
             self.dump_redis()
 
     def update_chat_data(self, chat_id: int, data: Dict) -> None:
-        '''Will update the chat_data and depending on :attr:`on_flush` save the pickle on Redis.'''
+        '''
+            Will update the chat_data and depending on :attr:`on_flush` save
+            the pickle on Redis.
+        '''
         if self.chat_data is None:
             self.chat_data = defaultdict(dict)
         if self.chat_data.get(chat_id) == data:
@@ -123,7 +145,10 @@ class RedisPersistence(BasePersistence):
             self.dump_redis()
 
     def update_bot_data(self, data: Dict) -> None:
-        '''Will update the bot_data and depending on :attr:`on_flush` save the pickle on Redis.'''
+        '''
+            Will update the bot_data and depending on :attr:`on_flush` save the
+            pickle on Redis.
+        '''
         if self.bot_data == data:
             return
         self.bot_data = data.copy()

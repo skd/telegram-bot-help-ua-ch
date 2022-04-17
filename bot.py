@@ -8,7 +8,6 @@ from morpho_index import MorphoIndex
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    MAX_MESSAGE_LENGTH,
     MessageEntity,
     ParseMode,
     ReplyKeyboardMarkup,
@@ -59,7 +58,8 @@ def redis_instance(redis_db: int):
     url = urlparse(config.REDIS_URL)
     use_ssl = url.scheme == 'rediss'
     logger.info(
-        f"Enabling Redis-based bot persistence.\nRedis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}"
+        f"Enabling Redis-based bot persistence.\n"
+        f"Redis on: {url.hostname}:{url.port}\nUse SSL: {use_ssl}"
     )
     return redis.Redis(
         db=redis_db,
@@ -76,7 +76,8 @@ def redis_persistence():
     encryption_key_bytes = None
     if config.BOT_STATE_ENCRYPTION_KEY is None:
         logger.error(
-            "*** EMPTY BOT_STATE_ENCRYPTION_KEY *** YOU SHOULD NEVER SEE THIS IN PROD ***"
+            "*** EMPTY BOT_STATE_ENCRYPTION_KEY *** "
+            "YOU SHOULD NEVER SEE THIS IN PROD ***"
         )
     else:
         encryption_key_bytes = config.BOT_STATE_ENCRYPTION_KEY.encode()
@@ -141,7 +142,8 @@ def pull_conversation():
             return f.read().decode("utf-8")
     except urllib.error.URLError as e:
         logger.error(
-            f"Failed to load conversation from {config.CONVERSATION_MODEL_URL}",
+            f"Failed to load conversation from "
+            f"{config.CONVERSATION_MODEL_URL}",
             exc_info=e)
         raise e
 
@@ -177,7 +179,8 @@ def reset_bot_data(conversation_textproto: str, update: Update = None):
 
 
 def handle_answer(answer, update: Update):
-    message = update.message if update.message else update.callback_query.message
+    message = update.message \
+            if update.message else update.callback_query.message
     if len(answer.text) > 0:
         message.reply_text(answer.text, parse_mode=ParseMode.HTML)
     elif len(answer.links.text) > 0:
@@ -318,7 +321,8 @@ def update_state_and_send_conversation(update: Update,
         keyboard_node_name = display_node_name
     user_data["current_node"] = keyboard_node_name
 
-    from_user = update.message.from_user if update.message else update.callback_query.from_user
+    from_user = update.message.from_user \
+        if update.message else update.callback_query.from_user
     bot_stats.collect_interaction(from_user.id, display_node_name)
 
     display_node = convo_data.node_by_name(display_node_name)
@@ -340,7 +344,8 @@ def update_state_and_send_conversation(update: Update,
     for answer in display_node.answer[:-1]:
         handle_answer(answer, update)
     last_answer = display_node.answer[-1]
-    message = update.message if update.message else update.callback_query.message
+    message = update.message \
+        if update.message else update.callback_query.message
     if len(last_answer.text) == 0:
         handle_answer(last_answer, update)
         message.reply_text(bot_messages.PROMPT_REPLY,
@@ -464,7 +469,8 @@ def conversation_handler(persistent: bool):
             COLLECT_FEEDBACK: [
                 MessageHandler(
                     Filters.chat_type.private & Filters.regex(
-                        f"^{bot_messages.SEND_FEEDBACK}|{bot_messages.SEND_FEEDBACK_ANONYMOUSLY}$"
+                        f"^{bot_messages.SEND_FEEDBACK}|"
+                        f"{bot_messages.SEND_FEEDBACK_ANONYMOUSLY}$"
                     ), send_feedback),
                 MessageHandler(
                     Filters.chat_type.private & Filters.all
