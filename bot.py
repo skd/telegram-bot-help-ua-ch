@@ -24,16 +24,15 @@ from telegram.ext import (
     Updater,
 )
 from urllib.parse import urlparse
+import bot_messages
 import config
+import error_handler
 import google.protobuf.text_format as text_format
-import html
-import json
 import logging
 import proto.conversation_pb2 as conversation_proto
 import redis
 import ssl
 import telegram.error
-import traceback
 import urllib.request
 import stats
 
@@ -49,30 +48,6 @@ convo_data: ConversationData = None
 CHOOSING, START_FEEDBACK, COLLECT_FEEDBACK, ADMIN_MENU, SEARCH_FAILED = \
     range(5)
 TOP_N_SEARCH_RESULTS = 3
-
-BACK = "Назад"
-START_OVER = "Вернуться в начало"
-FEEDBACK = "Оставить отзыв боту"
-PROMPT_FEEDBACK = "Пишите свой отзыв прямо тут."
-CONTINUE_FEEDBACK = "Пишите дальше, если хотите что-то добавить. " + \
-    "Нажмите «Послать отзыв», если готовы послать отзыв."
-SEND_FEEDBACK = "✅ Послать отзыв"
-SEND_FEEDBACK_ANONYMOUSLY = "🥷 Послать отзыв анонимно"
-THANK_FOR_FEEDBACK = "Спасибо вам за отзыв! 🙏"
-EMPTY_SEARCH_RESULTS = (
-    "По вашему запросу ничего не нашлось. 🤔 Пожалуйста, "
-    "введите новый запрос или выберите пункт меню.\n\nЕсли у нас нет нужной "
-    "статьи и Google тоже не может ответить на ваш вопрос, вы можете сообщить "
-    "нам об этом, нажав кнопку \"Оставить отзыв боту\".")
-SEARCH_RESULT_HEADER = "По вашему запросу найдены статьи:"
-SINGLE_SEARCH_RESULT_HEADER_TEMPLATE = "По вашему запросу найдена статья \"{}\":"
-DATA_REFRESHED = "Не получается перейти назад, поскольку данные были обновлены. Пожалуйста, вернитесь в начало."
-PROMPT_REPLY = "Выберите пункт"
-ERROR_OCCURED = "Извините, произошла ошибка. Попробуйте начать сначала."
-STATISTICS = "Статистика"
-ADMIN = "Админ"
-ADMIN_PROMPT = "Давно не виделись! Как поживаете?"
-RELOAD = "Обновить данные разговора"
 
 START_NODE = "/start"
 
@@ -113,45 +88,7 @@ persistence = redis_persistence() if config.PERSIST_SESSIONS else None
 
 
 def handle_error(update: object, context: CallbackContext):
-    logger.error(msg="Exception while handling an update:",
-                 exc_info=context.error)
-
-    if config.FEEDBACK_CHANNEL_ID is not None:
-        tb_list = traceback.format_exception(None, context.error,
-                                             context.error.__traceback__)
-        tb_string = ''.join(tb_list)
-        update_str = update.to_dict() if isinstance(update,
-                                                    Update) else str(update)
-        try:
-            context.bot.send_message(
-                chat_id=config.FEEDBACK_CHANNEL_ID,
-                text="An exception was raised when handling an update:")
-            update_msg = (
-                f"Update:\n<pre>"
-                f"{html.escape(json.dumps(update_str, indent=2, ensure_ascii=False, default=str))}"
-                f"</pre>"[:MAX_MESSAGE_LENGTH])
-            context.bot.send_message(chat_id=config.FEEDBACK_CHANNEL_ID,
-                                     text=update_msg,
-                                     parse_mode=ParseMode.HTML)
-            context_msg = (
-                f"context.user_data:\n<pre>"
-                f"{json.dumps(context.user_data, indent=2, ensure_ascii=False, default=str)}"
-                f"</pre>"[:MAX_MESSAGE_LENGTH])
-            context.bot.send_message(chat_id=config.FEEDBACK_CHANNEL_ID,
-                                     text=context_msg,
-                                     parse_mode=ParseMode.HTML)
-            error_msg = (f"Error:\n<pre>{html.escape(tb_string)}"
-                         f"</pre>"[:MAX_MESSAGE_LENGTH])
-            context.bot.send_message(chat_id=config.FEEDBACK_CHANNEL_ID,
-                                     text=error_msg,
-                                     parse_mode=ParseMode.HTML)
-        except Exception as e:
-            logger.warning(msg="Can't send a message to a feedback channel.",
-                           exc_info=e)
-    if isinstance(update, Update) and update.message is not None:
-        update.message.reply_text(ERROR_OCCURED,
-                                  reply_markup=ReplyKeyboardMarkup(
-                                      [[START_OVER]], one_time_keyboard=True))
+    error_handler.handle_error(update, context)
     reset_user_state(context)
 
 
@@ -176,18 +113,18 @@ def start(update: Update, context: CallbackContext) -> int:
 
 def show_admin_menu(update: Update, context: CallbackContext) -> int:
     keyboard_opts = [
-        [RELOAD],
-        [STATISTICS],
-        [START_OVER],
+        [bot_messages.RELOAD],
+        [bot_messages.STATISTICS],
+        [bot_messages.START_OVER],
     ]
-    update.message.reply_text(ADMIN_PROMPT,
+    update.message.reply_text(bot_messages.ADMIN_PROMPT,
                               parse_mode=ParseMode.HTML,
                               reply_markup=ReplyKeyboardMarkup(keyboard_opts))
     return ADMIN_MENU
 
 
 def show_stats(update: Update, context: CallbackContext) -> int:
-    keyboard_opts = [[START_OVER]]
+    keyboard_opts = [[bot_messages.START_OVER]]
     update.message.reply_text(bot_stats.compute(),
                               parse_mode=ParseMode.HTML,
                               reply_markup=ReplyKeyboardMarkup(keyboard_opts))
@@ -196,7 +133,8 @@ def show_stats(update: Update, context: CallbackContext) -> int:
 
 
 def pull_conversation():
-    logger.info(f"Loading conversation model from {config.CONVERSATION_MODEL_URL}")
+    logger.info(
+        f"Loading conversation model from {config.CONVERSATION_MODEL_URL}")
     try:
         with urllib.request.urlopen(config.CONVERSATION_MODEL_URL,
                                     context=ssl.create_default_context()) as f:
@@ -220,7 +158,8 @@ def reload_conversation(update: Update, context: CallbackContext) -> int:
     except urllib.error.URLError as e:
         update.message.reply_text(f"Ошибка загрузки диалога:\n{e}",
                                   reply_markup=ReplyKeyboardMarkup(
-                                      [[START_OVER]], one_time_keyboard=True))
+                                      [[bot_messages.START_OVER]],
+                                      one_time_keyboard=True))
         start(update, context)
 
     return show_admin_menu(update, context)
@@ -295,10 +234,11 @@ def search(update: Update, context: CallbackContext, search_terms: str):
         if len(search_results) == 1:
             display_node_name = search_results[0][0]
             update.message.reply_text(
-                SINGLE_SEARCH_RESULT_HEADER_TEMPLATE.format(display_node_name))
-            update_state_and_send_conversation(update, context,
-                                               context.user_data["current_node"],
-                                               display_node_name)
+                bot_messages.SINGLE_SEARCH_RESULT_HEADER_TEMPLATE.format(
+                    display_node_name))
+            update_state_and_send_conversation(
+                update, context, context.user_data["current_node"],
+                display_node_name)
         else:
             buttons = []
             for result in search_results[:TOP_N_SEARCH_RESULTS]:
@@ -307,7 +247,7 @@ def search(update: Update, context: CallbackContext, search_terms: str):
                                          callback_data=hash(result.node_name))
                 ])
             reply_markup = InlineKeyboardMarkup(buttons)
-            update.message.reply_text(SEARCH_RESULT_HEADER,
+            update.message.reply_text(bot_messages.SEARCH_RESULT_HEADER,
                                       reply_markup=reply_markup)
         return CHOOSING
     else:
@@ -315,10 +255,11 @@ def search(update: Update, context: CallbackContext, search_terms: str):
         bot_stats.collect_search(user_id, search_terms, 0)
         keyboard_options = []
         if config.FEEDBACK_CHANNEL_ID is not None:
-            keyboard_options.append([FEEDBACK])
-        keyboard_options.extend([[BACK], [START_OVER]])
+            keyboard_options.append([bot_messages.FEEDBACK])
+        keyboard_options.extend([[bot_messages.BACK],
+                                 [bot_messages.START_OVER]])
         update.message.reply_text(
-            EMPTY_SEARCH_RESULTS,
+            bot_messages.EMPTY_SEARCH_RESULTS,
             reply_markup=ReplyKeyboardMarkup(keyboard_options,
                                              one_time_keyboard=True))
         return SEARCH_FAILED
@@ -382,9 +323,9 @@ def update_state_and_send_conversation(update: Update,
 
     display_node = convo_data.node_by_name(display_node_name)
     if not display_node:
-        current_keyboard = ReplyKeyboardMarkup([[START_OVER]],
+        current_keyboard = ReplyKeyboardMarkup([[bot_messages.START_OVER]],
                                                one_time_keyboard=True)
-        update.message.reply_text(DATA_REFRESHED,
+        update.message.reply_text(bot_messages.DATA_REFRESHED,
                                   reply_markup=current_keyboard)
         return
 
@@ -402,7 +343,8 @@ def update_state_and_send_conversation(update: Update,
     message = update.message if update.message else update.callback_query.message
     if len(last_answer.text) == 0:
         handle_answer(last_answer, update)
-        message.reply_text(PROMPT_REPLY, reply_markup=current_keyboard)
+        message.reply_text(bot_messages.PROMPT_REPLY,
+                           reply_markup=current_keyboard)
     else:
         message.reply_text(last_answer.text,
                            parse_mode=ParseMode.HTML,
@@ -418,13 +360,13 @@ def build_keyboard_options(keyboard_options_node_name: str = None,
         current_keyboard_options.extend(
             convo_data.keyboard_by_name(keyboard_options_node_name))
     if show_admin_button:
-        current_keyboard_options.appendleft([ADMIN])
+        current_keyboard_options.appendleft([bot_messages.ADMIN])
     if show_feedback_button and config.FEEDBACK_CHANNEL_ID is not None:
-        current_keyboard_options.append([FEEDBACK])
+        current_keyboard_options.append([bot_messages.FEEDBACK])
     if nav_stack_depth >= 2:
-        current_keyboard_options.append([BACK])
+        current_keyboard_options.append([bot_messages.BACK])
     if nav_stack_depth > 2:
-        current_keyboard_options.append([START_OVER])
+        current_keyboard_options.append([bot_messages.START_OVER])
     return ReplyKeyboardMarkup(current_keyboard_options,
                                one_time_keyboard=True)
 
@@ -432,8 +374,8 @@ def build_keyboard_options(keyboard_options_node_name: str = None,
 def start_feedback(update: Update, context: CallbackContext):
     if config.FEEDBACK_CHANNEL_ID is None:
         return start(update, context)
-    keyboard_options = [START_OVER]
-    update.message.reply_text(PROMPT_FEEDBACK,
+    keyboard_options = [bot_messages.START_OVER]
+    update.message.reply_text(bot_messages.PROMPT_FEEDBACK,
                               reply_markup=ReplyKeyboardMarkup(
                                   [keyboard_options], one_time_keyboard=True))
     return COLLECT_FEEDBACK
@@ -448,9 +390,11 @@ def collect_feedback(update: Update, context: CallbackContext):
 
     keyboard_options = []
     if len(context.user_data["feedback"]) > 0:
-        keyboard_options.append([SEND_FEEDBACK, SEND_FEEDBACK_ANONYMOUSLY])
-    keyboard_options.append([START_OVER])
-    update.message.reply_text(CONTINUE_FEEDBACK,
+        keyboard_options.append([
+            bot_messages.SEND_FEEDBACK, bot_messages.SEND_FEEDBACK_ANONYMOUSLY
+        ])
+    keyboard_options.append([bot_messages.START_OVER])
+    update.message.reply_text(bot_messages.CONTINUE_FEEDBACK,
                               reply_markup=ReplyKeyboardMarkup(
                                   keyboard_options, one_time_keyboard=True))
     return COLLECT_FEEDBACK
@@ -464,7 +408,7 @@ def send_feedback(update: Update, context: CallbackContext):
 
     try:
         if update.message.text is not None and \
-                update.message.text != SEND_FEEDBACK_ANONYMOUSLY:
+                update.message.text != bot_messages.SEND_FEEDBACK_ANONYMOUSLY:
             effective_user_name = update.effective_user.name
             text = f"Feedback from {effective_user_name}"
             context.bot.send_message(
@@ -487,7 +431,7 @@ def send_feedback(update: Update, context: CallbackContext):
     bot_stats.collect_interaction(update.message.from_user.id, "Send Feedback")
 
     context.user_data["feedback"] = []
-    update.message.reply_text(THANK_FOR_FEEDBACK)
+    update.message.reply_text(bot_messages.THANK_FOR_FEEDBACK)
     return start(update, context)
 
 
@@ -502,52 +446,60 @@ def conversation_handler(persistent: bool):
         states={
             CHOOSING: [
                 MessageHandler(
-                    Filters.chat_type.private & Filters.regex(f"^{BACK}$"),
-                    back_choice),
+                    Filters.chat_type.private
+                    & Filters.regex(f"^{bot_messages.BACK}$"), back_choice),
                 MessageHandler(
-                    Filters.chat_type.private & Filters.regex(f"^{FEEDBACK}$"),
+                    Filters.chat_type.private
+                    & Filters.regex(f"^{bot_messages.FEEDBACK}$"),
                     start_feedback),
                 MessageHandler(
                     Filters.chat_type.private
                     & is_admin_filter
-                    & Filters.regex(f"^{ADMIN}$"), show_admin_menu),
+                    & Filters.regex(f"^{bot_messages.ADMIN}$"),
+                    show_admin_menu),
                 MessageHandler(
                     Filters.chat_type.private & Filters.text
-                    & ~Filters.regex(f"^{START_OVER}$"), choice),
+                    & ~Filters.regex(f"^{bot_messages.START_OVER}$"), choice),
             ],
             COLLECT_FEEDBACK: [
                 MessageHandler(
                     Filters.chat_type.private & Filters.regex(
-                        f"^{SEND_FEEDBACK}|{SEND_FEEDBACK_ANONYMOUSLY}$"),
-                    send_feedback),
+                        f"^{bot_messages.SEND_FEEDBACK}|{bot_messages.SEND_FEEDBACK_ANONYMOUSLY}$"
+                    ), send_feedback),
                 MessageHandler(
                     Filters.chat_type.private & Filters.all
-                    & ~Filters.regex(f"^{START_OVER}$"), collect_feedback),
+                    & ~Filters.regex(f"^{bot_messages.START_OVER}$"),
+                    collect_feedback),
             ],
             SEARCH_FAILED: [
                 MessageHandler(
-                    Filters.chat_type.private & Filters.regex(f"^{FEEDBACK}$"),
+                    Filters.chat_type.private
+                    & Filters.regex(f"^{bot_messages.FEEDBACK}$"),
                     start_feedback),
                 MessageHandler(
-                    Filters.chat_type.private & Filters.regex(f"^{BACK}$"),
+                    Filters.chat_type.private
+                    & Filters.regex(f"^{bot_messages.BACK}$"),
                     search_failed_back),
                 MessageHandler(
                     Filters.chat_type.private & Filters.all
-                    & ~Filters.regex(f"^{START_OVER}$"), search_again),
+                    & ~Filters.regex(f"^{bot_messages.START_OVER}$"),
+                    search_again),
             ],
             ADMIN_MENU: [
                 MessageHandler(
                     Filters.chat_type.private
-                    & Filters.regex(f"^{STATISTICS}$"), show_stats),
+                    & Filters.regex(f"^{bot_messages.STATISTICS}$"),
+                    show_stats),
                 MessageHandler(
-                    Filters.chat_type.private & Filters.regex(f"^{RELOAD}$"),
+                    Filters.chat_type.private
+                    & Filters.regex(f"^{bot_messages.RELOAD}$"),
                     reload_conversation),
             ],
         },
         fallbacks=[
             MessageHandler(
-                Filters.chat_type.private & Filters.regex(f"^{START_OVER}$"),
-                start),
+                Filters.chat_type.private
+                & Filters.regex(f"^{bot_messages.START_OVER}$"), start),
         ],
         name="main",
         persistent=persistent,
@@ -568,7 +520,9 @@ def reset_user_state(context: CallbackContext):
 
 
 def start_bot():
-    updater = Updater(token=config.API_KEY, persistence=persistence, use_context=True)
+    updater = Updater(token=config.API_KEY,
+                      persistence=persistence,
+                      use_context=True)
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(conversation_handler(persistence is not None))
