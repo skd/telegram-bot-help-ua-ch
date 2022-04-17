@@ -8,7 +8,7 @@ import re
 from multiset import Multiset
 from node_util import visit_node_with_branch_parent
 from operator import itemgetter
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List
 
 UKR_APOS = "'`’ʼ"
 UKR_APOS_REGEX = re.compile(f"[{UKR_APOS}]")

@@ -31,7 +31,8 @@ class Storage:
     def store_interaction(self, user_id: str, node: str, ts: int):
         pass
 
-    def store_search(self, user_id: str, query: str, matching_nodes: int, ts: int):
+    def store_search(self, user_id: str, query: str, matching_nodes: int,
+                     ts: int):
         pass
 
     def get_users_data(self) -> List[int]:
@@ -42,6 +43,7 @@ class Storage:
 
     def get_search_data(self) -> Counter:
         pass
+
 
 class Stats:
 
@@ -60,7 +62,8 @@ class Stats:
 
     def collect_search(self, user_id: int, query: str, matching_nodes: int):
         ts = int(datetime.datetime.now(BOT_TIMEZONE).timestamp())
-        return self.storage.store_search(hash_user(user_id), query.lower(), matching_nodes, ts)
+        return self.storage.store_search(hash_user(user_id), query.lower(),
+                                         matching_nodes, ts)
 
     def conversation_reloaded(self, username):
         self.last_reload_time_tz = datetime.datetime.now(BOT_TIMEZONE)
@@ -72,12 +75,14 @@ class Stats:
         uptime = datetime.timedelta(seconds=int(uptime.total_seconds()))
 
         now_ts = int(now_tz.timestamp())
-        interacts_data = self.storage.get_interactions_data().most_common(TOP_K_INTERACTIONS)
+        interacts_data = self.storage.get_interactions_data().most_common(
+            TOP_K_INTERACTIONS)
         search_data = self.storage.get_search_data().most_common(TOP_K_QUERIES)
 
         def search_data_mapper(t):
             last_hash = t[0].rindex("#")
             return (t[0][0:last_hash], t[0][last_hash + 1:], t[1])
+
         search_data = map(search_data_mapper, search_data)
         users_data = defaultdict(int)
         for user_ts in self.storage.get_users_data():
@@ -85,21 +90,29 @@ class Stats:
                 if user_ts > now_ts - bucket_ts:
                     users_data[k] += 1
 
-        users_stats = "\n".join([f"\t- {i}: {c}" for i, c in users_data.items()])
-        interacts_stats = "\n".join([f"\t- {n}: {c}" for n, c in interacts_data])
-        search_stats = "\n".join([f"{c}: '{q}' ({nc})" for q, nc, c in search_data])
+        users_stats = "\n".join(
+            [f"\t- {i}: {c}" for i, c in users_data.items()])
+        interacts_stats = "\n".join(
+            [f"\t- {n}: {c}" for n, c in interacts_data])
+        search_stats = "\n".join(
+            [f"{c}: '{q}' ({nc})" for q, nc, c in search_data])
 
         output = [
             f"Start time: {STARTTIME_TZ.strftime(DATETIME_FORMAT)}",
             f"Uptime: {uptime}"
         ]
         if self.last_reload_time_tz:
-            output.append(f"Last conversation reload: {self.last_reload_time_tz.strftime(DATETIME_FORMAT)} ({self.last_reloader_username})")
+            output.append(
+                f"Last conversation reload: "
+                f"{self.last_reload_time_tz.strftime(DATETIME_FORMAT)} "
+                f"({self.last_reloader_username})"
+            )
 
         output.extend([
             f"Total users:\n{users_stats}",
             f"Top {TOP_K_INTERACTIONS} interactions:\n{interacts_stats}\n",
-            f"Top {TOP_K_QUERIES} queries [count: 'query' (matchingNodes)]:\n{search_stats}"
+            f"Top {TOP_K_QUERIES} queries [count: 'query' (matchingNodes)]:\n"
+            f"{search_stats}"
         ])
         return "\n".join(output)
 
@@ -126,7 +139,8 @@ class RedisStorage(Storage):
         )
         pipeline.execute()
 
-    def store_search(self, user_id: str, query: str, matching_nodes: int, ts: int):
+    def store_search(self, user_id: str, query: str, matching_nodes: int,
+                     ts: int):
         pipeline = self.rd.pipeline()
         pipeline.setex(
             f"{REDIS_USER_NS}:{user_id}",
@@ -134,7 +148,8 @@ class RedisStorage(Storage):
             ts,
         )
         bucket = self.hbucket(ts, 1)
-        pipeline.hincrby(f"{REDIS_SEARCH_NS}:{bucket}", f"{query}#{matching_nodes}", 1)
+        pipeline.hincrby(f"{REDIS_SEARCH_NS}:{bucket}",
+                         f"{query}#{matching_nodes}", 1)
         pipeline.expire(
             f"{REDIS_SEARCH_NS}:{bucket}",
             METRICS_RETENTION,
@@ -160,9 +175,11 @@ class RedisStorage(Storage):
     def get_search_data(self) -> Counter:
         search_data = Counter()
         for bucket in self.hourly_buckets(METRICS_RETENTION.total_seconds()):
-            search_stats = self.rd.hgetall(f"{REDIS_SEARCH_NS}:{bucket}").items()
+            search_stats = self.rd.hgetall(
+                f"{REDIS_SEARCH_NS}:{bucket}").items()
             for query_and_found_nodes, query_occurrences in search_stats:
-                search_data[query_and_found_nodes.decode("utf-8")] += int(query_occurrences)
+                search_data[query_and_found_nodes.decode("utf-8")] += int(
+                    query_occurrences)
 
         return search_data
 
@@ -193,7 +210,8 @@ class MemStorage(Storage):
         self.timestamp_by_user[user_id] = ts
         self.interactions[node] += 1
 
-    def store_search(self, user_id: str, query: str, matching_nodes: int, ts: int):
+    def store_search(self, user_id: str, query: str, matching_nodes: int,
+                     ts: int):
         self.timestamp_by_user[user_id] = ts
         self.searches[f"{query}#{matching_nodes}"] += 1
 
@@ -208,4 +226,5 @@ class MemStorage(Storage):
 
 
 def hash_user(user_id: int) -> str:
-    return hashlib.sha256(user_id.to_bytes(10, byteorder='big', signed=True)).hexdigest()
+    return hashlib.sha256(user_id.to_bytes(10, byteorder='big',
+                                           signed=True)).hexdigest()

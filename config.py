@@ -12,7 +12,7 @@ LOGLEVEL = _env.log_level("LOGLEVEL", logging.INFO)
 
 CONVERSATION_MODEL_LOCAL_URL = "file:conversation_tree.textproto"
 CONVERSATION_MODEL_URL = _env.str("CONVERSATION_MODEL_URL",
-                                 CONVERSATION_MODEL_LOCAL_URL)
+                                  CONVERSATION_MODEL_LOCAL_URL)
 
 REDIS_URL = _env.str("REDIS_TLS_URL", "redis://localhost:6379")
 PERSIST_SESSIONS = _env.bool("PERSIST_SESSIONS", False)
