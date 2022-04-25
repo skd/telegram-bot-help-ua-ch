@@ -1414,7 +1414,7 @@ node {
         url: "https://t.me/UAartInSwiss"
       }
       url {
-        label: "Чат для публикации мероприятий, событий, мастер-классов"
+        label: "Чат для публикации мероприятий и событий"
         url: "https://t.me/events_UA_in_CH"
       }
       url {
