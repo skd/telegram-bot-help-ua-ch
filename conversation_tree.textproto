@@ -1022,8 +1022,16 @@ node {
         "Многие организации предоставляют льготы или бесплатную помощь беженцам с Украины. Следите в местными каналах за "
         "объявлениями о конкретных акциях. Здесь мы собрали некоторые ссылки о постоянных акциях помощи, а также несколько ресурсов с перепродажей б/у товаров, где можно найти многие вещи (от чайника до автомобиля) с большими скидками или даже бесплатно (gratis)."
       url {
+        label: "Список ресурсов с помощью с одеждой и обувью"
+        url: "https://t.me/UASchweiz/23461"
+      }
+      url {
         label: "Чат с информацией по бесплатной стоматологии"
         url: "https://t.me/stomatologch"
+      }
+      url {
+        label: "Чат с бесплатной психологической помощью"
+        url: "https://t.me/+UWjgo81yuqlkNjhi"
       }
       url {
         label: "Caritas: дешевая одежда и еда"
@@ -1154,6 +1162,11 @@ node {
         label: "Таблица пород собак с особыми правилами (DE)"
         url: "https://www.sc-akademie.ch/archiv/%C3%BCbersicht-rasselisten-listenhunde"
       }
+      url {
+        label: "Приюты для животных в случае чрезвычайных ситуаций (DE)"
+        url: "http://www.tierheime.ch/tierheime/index.html"
+      }
+      
     }
   }
 }
@@ -1211,6 +1224,7 @@ node {
     text: "Здесь вы можете найти локальные чаты с информацией и помощью."
   }
   link { name: "Региональные чаты в Швейцарии" }
+  link { name: "Профессиональные и тематические чаты в Швейцарии" }
   link { name: "Региональные чаты в Европе" }
 }
 
@@ -1285,8 +1299,8 @@ node {
         url: "https://t.me/LuzernUkraine"
       }
       url {
-        label: "Люцерн: LuzernUAHilfe"
-        url: "https://t.me/LuzernUAHilfe"
+        label: "Люцерн: LUkraina"
+        url: "https://t.me/LUkraina"
       }
       url {
         label: "Невшатель: westandwithukraina"
@@ -1368,13 +1382,56 @@ node {
         label: "Канал с общей полезной информацией"
         url: "https://t.me/ukrainian_in_Swiss"
       }
-      url {
+    }
+  }
+}
+
+
+node {
+  name: "Профессиональные и тематические чаты в Швейцарии"
+  alt_name: "Професійні та тематичні чати у Швейцарії"
+  answer {
+    links {
+      text: "Профессиональные и тематические чаты в Швейцарии. Если чего-то не нашли, попробуйте посмотреть в региональных чатах"
+            url {
         label: "Канал с юридической информацией SEEP"
         url: "https://t.me/seep_helpukrainians"
       }
       url {
         label: "Чат для мам в Швейцарии"
         url: "https://t.me/UkrRusMomsInSwitzerland"
+      }
+      url {
+        label: "Телеграм-чат #1 по поиску работы в Швейцарии"
+        url: "https://t.me/job_sw_ukrainians"
+      }
+      url {
+        label: "Телеграм-чат #2 по поиску работы в Швейцарии"
+        url: "https://t.me/workinswiss"
+      }
+      url {
+        label: "Чат для людей творческих профессий"
+        url: "https://t.me/UAartInSwiss"
+      }
+      url {
+        label: "Чат для публикации мероприятий, событий, мастер-классов"
+        url: "https://t.me/events_UA_in_CH"
+      }
+      url {
+        label: "Телеграм-чат для сотрудников бьюти-индустрии"
+        url: "https://t.me/BeautySwitzerland"
+      }
+       url {
+        label: "Чат с информацией по бесплатной стоматологии"
+        url: "https://t.me/stomatologch"
+      }
+      url {
+        label: "Чат с бесплатной психологической помощью"
+        url: "https://t.me/+UWjgo81yuqlkNjhi"
+      }
+      url {
+        label: "Чат о домашних животных"
+        url: "https://t.me/helppetsfromukraine"
       }
     }
   }
