@@ -1163,7 +1163,7 @@ node {
         url: "https://www.sc-akademie.ch/archiv/%C3%BCbersicht-rasselisten-listenhunde"
       }
       url {
-        label: "Приюты для животных в случае чрезвычайных ситуаций (DE)"
+        label: "Временные приюты для животных (DE)"
         url: "http://www.tierheime.ch/tierheime/index.html"
       }
       
