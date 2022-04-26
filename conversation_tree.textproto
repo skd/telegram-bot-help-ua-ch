@@ -1063,7 +1063,7 @@ node {
       }
       url {
         label: "Anibis.ch, доска объявлений"
-        url: "https://www.Anibis.ch/"
+        url: "https://anibis.ch/"
       }
       url {
         label: "Tutti.ch, доска объявлений"
