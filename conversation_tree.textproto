@@ -811,7 +811,7 @@ node {
       }
       url {
         label: "anibis.ch"
-        url: "https://hanibis.ch"
+        url: "https://anibis.ch"
       }
     }
   }
