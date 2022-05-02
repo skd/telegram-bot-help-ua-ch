@@ -1379,6 +1379,14 @@ node {
         url: "https://sh.ch/CMS/Webseite/Kanton-Schaffhausen/Beh-rde/Verwaltung/Departement-des-Innern/Migrationsamt-und-Passb-ro/Ukraine--Kantonale-Anlaufstelle-10250559-DE.html"
       }
       url {
+        label: "Юра: UkrInJura"
+        url: "https://t.me/UkrInJura"
+      }    
+      url {
+        label: "Общий чат по Швейцарии"
+        url: "https://t.me/UASchweiz"
+      }
+      url {
         label: "Канал с общей полезной информацией"
         url: "https://t.me/ukrainian_in_Swiss"
       }
