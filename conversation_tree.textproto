@@ -1003,8 +1003,8 @@ node {
         url: "https://glassdoor.com"
       }
       url {
-        label: "www.takwork.ch"
-        url: "www.takwork.ch"
+        label: "takwork.ch"
+        url: "takwork.ch"
       }
       url {
         label: "www.coople.com"
