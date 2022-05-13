@@ -1008,11 +1008,11 @@ node {
       }
       url {
         label: "www.coople.com"
-        url: "www.coople.com"
+        url: "https://www.coople.com/ch/en/"
       }
       url {
         label: "www.studentjob.ch"
-        url: "www.studentjob.ch"
+        url: "https://www.studentjob.ch/"
       }
       url {
         label: "https://www.adeccojobsforukraine.com"
