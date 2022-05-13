@@ -1004,7 +1004,7 @@ node {
       }
       url {
         label: "takwork.ch"
-        url: "takwork.ch"
+        url: "https://takwork.ch/"
       }
       url {
         label: "www.coople.com"
