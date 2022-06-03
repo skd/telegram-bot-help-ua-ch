@@ -1452,6 +1452,10 @@ node {
         url: "https://t.me/ZurichUkraine"
       }
       url {
+        label: "Шаффхаузен: schaffhausen_ukr"
+        url: "https://t.me/schaffhausen_ukr"
+      }
+      url {
         label: "Шаффхаузен: +aDgGOoiukhNhNzAy"
         url: "https://t.me/+aDgGOoiukhNhNzAy"
       }
